@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Header() {
     return (
-        <header className="p-3 mb-3 border-bottom">
+        <header className="p-3 border-bottom">
             <div className="container d-flex flex-wrap align-items-center justify-content-between">
                 
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" className="bi bi-calendar-event" viewBox="0 0 16 16">

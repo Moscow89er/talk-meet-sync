@@ -56,7 +56,7 @@ interface Meeting {
 
 const Meetings: React.FC = () => {
     return (
-        <div className="container my-3">
+        <div className="container">
             <div className="column">
             <div className="row">
                 <div className="col-12">
