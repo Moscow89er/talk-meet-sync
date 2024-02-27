@@ -1,3 +1,4 @@
+import webpack from 'webpack';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
@@ -41,7 +42,10 @@ export default {
     plugins: [
         new HtmlWebpackPlugin({
             template: './public/index.html'
-        })
+        }),
+        new webpack.DefinePlugin({
+            'process.env.REACT_APP_API_KEY': JSON.stringify(process.env.REACT_APP_API_KEY),
+        }),
     ],
     devServer: {
         static: {
