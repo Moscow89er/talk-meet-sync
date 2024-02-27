@@ -2,3 +2,14 @@
     margin: 0 auto;
     width: 60vw;
 }
+
+.calendar__day--current {
+    color: blue !important;
+    background-color: rgb(203, 225, 254) !important;
+}
+
+.calendar__day--prev,
+.calendar__day--next {
+  color: #999 !important;
+  background-color: #f0f0f0 !important;
+}

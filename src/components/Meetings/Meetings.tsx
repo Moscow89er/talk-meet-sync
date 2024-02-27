@@ -60,7 +60,7 @@ const Meetings: React.FC = () => {
             <div className="column">
             <div className="row">
                 <div className="col-12">
-                    <h3 className="text-start my-4">Ближайшие встречи</h3>
+                    <h3 className="text-start my-4">Пересечение встреч</h3>
                 </div>
             </div>
             <div className="row">
