@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function Header() {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-    const handleToggleMenuOpen = (event: React.MouseEvent<HTMLDivElement>) => {
-        
+    const handleToggleMenuOpen = () => {
         setIsPopupOpen(!isPopupOpen);
-    };
+    }
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -33,13 +32,21 @@ export default function Header() {
                 <div onClick={handleToggleMenuOpen} className="dropdown" ref={dropdownRef}>
                     <a 
                         href="#" 
-                        className="d-block link-dark text-decoration-none dropdown-toggle" 
+                        className="d-block link-body-emphasis text-decoration-none dropdown-toggle" 
+                        onClick={handleToggleMenuOpen}
                         aria-expanded={isPopupOpen}
                     >
-                        <img src="https://downloader.disk.yandex.ru/preview/ab0d5332aa600d28fa384ee98a4b84ea6b2cc2f4b3d4f12ea49a77c1603fc470/65dc54ce/6O60qL2_sCBhO1icjCb8y9uvl-7ulaEEsaNXf4YvoPIFw1rBHkyuZ30uxcSWoDNvwsR1JRf2VoMldFwMbeLUGg%3D%3D?uid=0&filename=about-me_photo.jpg&disposition=inline&hash=&limit=0&content_type=image%2Fjpeg&owner_uid=0&tknv=v2&size=1921x964" alt="My image" width="32" height="32" className="rounded-circle" style={{ objectFit: 'cover', maxWidth: '100%' }} />
+                        <img
+                            src="https://downloader.disk.yandex.ru/preview/ab0d5332aa600d28fa384ee98a4b84ea6b2cc2f4b3d4f12ea49a77c1603fc470/65dc54ce/6O60qL2_sCBhO1icjCb8y9uvl-7ulaEEsaNXf4YvoPIFw1rBHkyuZ30uxcSWoDNvwsR1JRf2VoMldFwMbeLUGg%3D%3D?uid=0&filename=about-me_photo.jpg&disposition=inline&hash=&limit=0&content_type=image%2Fjpeg&owner_uid=0&tknv=v2&size=1921x964"
+                            alt="My image"
+                            width="32"
+                            height="32"
+                            className="rounded-circle"
+                            style={{ objectFit: 'cover', maxWidth: '100%' }}
+                        />
                     </a>
                     {isPopupOpen && 
-                        <ul className="dropdown-menu dropdown-menu-end text-small" style={{ position: 'absolute' }}>
+                        <ul className="dropdown-menu dropdown-menu-end show" data-bs-popper="static">
                             <li><a className="dropdown-item" href="#">Настройки</a></li>
                             <li><a className="dropdown-item" href="#">Профиль</a></li>
                             <li><hr className="dropdown-divider" /></li>
