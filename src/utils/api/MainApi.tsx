@@ -1,13 +1,4 @@
-interface ApiOptions {
-    url: string;
-}
-
-interface EmailCalendarParams {
-    email: string;
-    start?: string;
-    to?: string;
-    take?: number;
-}
+import { ApiOptions, EmailCalendarParams } from "../types/apiTypes";
 
 class MainApi {
     private _url: string;
@@ -17,8 +8,8 @@ class MainApi {
         this._url = options.url;
         // Добавляем API-ключ в заголовки при создании экземпляра класса
         this._headers = {
-            'Content-Type': 'application/json',
-            'X-Auth-Token': process.env.REACT_APP_API_KEY,
+            "Content-Type": "application/json",
+            "X-Auth-Token": "",
         };
     }
 

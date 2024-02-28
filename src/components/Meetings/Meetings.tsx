@@ -1,26 +1,19 @@
 import React, { useState, useEffect } from "react";
-import mainApi from "../../utils/MainApi";
-
-interface Meeting {
-  id: number;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-}
+import mainApi from "../../utils/api/MainApi";
+import { Meeting } from "../../utils/types/commonTypes";
 
 const fetchMeetings = async (): Promise<Meeting[]> => {
     try {
         const params = { email: "khubaev.n@skbkontur.ru" };
         const response = await mainApi.getEmailCalendar(params);
-        console.log(response);
+        console.log(response); // Удалить после сборки
         // Преобразование данных API в формат интерфейса Meeting
         const meetingsData = response.items.map((item: any) => ({
             id: item.id,
-            title: item.subject, // Используйте 'subject' как 'title'
+            title: item.subject,
             description: item.description,
-            date: item.start.substring(0, 10), // Извлеките только дату из 'start'
-            time: `${item.start.substring(11, 16)} - ${item.end.substring(11, 16)}`, // Форматируйте время начала и конца
+            date: item.start.substring(0, 10),
+            time: `${item.start.substring(11, 16)} - ${item.end.substring(11, 16)}`,
         }));
         return meetingsData;
     } catch (error) {

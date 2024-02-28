@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 
 export default function Header() {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -14,9 +14,9 @@ export default function Header() {
                 setIsPopupOpen(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
 
@@ -42,7 +42,7 @@ export default function Header() {
                             width="32"
                             height="32"
                             className="rounded-circle"
-                            style={{ objectFit: 'cover', maxWidth: '100%' }}
+                            style={{ objectFit: "cover", maxWidth: "100%" }}
                         />
                     </a>
                     {isPopupOpen && 

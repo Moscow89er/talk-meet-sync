@@ -54,10 +54,10 @@ const Calendar: React.FC = () => {
           const isCurrentDay = isCurrentMonth && day === currentDay;
           const isPrevMonth = dayPosition < dayOfWeek - 1; // Если позиция дня меньше, чем смещение первого дня месяца
           const isNextMonth = dayPosition >= (dayOfWeek - 1 + numberOfDaysInMonth); // Если позиция дня больше или равна смещению плюс количество дней в месяце
-          let className = 'calendar__day';
-          if (isCurrentDay) className += ' calendar__day--current';
-          if (isPrevMonth) className += ' calendar__day--prev';
-          if (isNextMonth) className += ' calendar__day--next';
+          let className = "calendar__day";
+          if (isCurrentDay) className += " calendar__day--current";
+          if (isPrevMonth) className += " calendar__day--prev";
+          if (isNextMonth) className += " calendar__day--next";
     
           return (
             <td key={dayIndex} className={className}>
