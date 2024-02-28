@@ -4,14 +4,14 @@ import { Meeting } from "../../utils/types/commonTypes";
 
 const fetchMeetings = async (): Promise<Meeting[]> => {
     try {
-        const params = { email: "khubaev.n@skbkontur.ru" };
+        const params = { email: "khubaev.n@yandex.ru" };
         const response = await mainApi.getEmailCalendar(params);
-        console.log(response); // Удалить после сборки
+        
         // Преобразование данных API в формат интерфейса Meeting
         const meetingsData = response.items.map((item: any) => ({
             id: item.id,
             title: item.subject,
-            description: item.description,
+            name: item.organizer.name,
             date: item.start.substring(0, 10),
             time: `${item.start.substring(11, 16)} - ${item.end.substring(11, 16)}`,
         }));
@@ -49,7 +49,7 @@ const Meetings: React.FC = () => {
                         <div className="card h-100">
                             <div className="card-body">
                                 <h5 className="card-title text-primary">{meeting.title}</h5>
-                                <p className="card-text">{meeting.description}</p>
+                                <p className="card-text">{meeting.name}</p>
                             </div>
                             <div className="card-footer text-muted">
                                 <span>{meeting.date}</span> | <span>{meeting.time}</span>

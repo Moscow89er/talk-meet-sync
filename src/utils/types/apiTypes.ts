@@ -8,3 +8,10 @@ export interface EmailCalendarParams {
     to?: string;
     take?: number;
 }
+
+export interface UsersParams {
+    top: number;
+    offset?: string;
+    role?: string;
+    includeDisabled?: boolean;
+}
