@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Header from "../Header/Header";
 import Calendar from "../Calendar/Calendar";
 import Meetings from "../Meetings/Meetings";
+import Popup from "../Popup/Popup";
 import "bootstrap/dist/css/bootstrap.min.css";
 import mainApi from "../../utils/api/MainApi";
 import { User, Meeting } from "../../utils/types/commonTypes";
@@ -49,10 +50,9 @@ const fetchMeetings = async (email: string): Promise<Meeting[]> => {
 };
 
 export default function App() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [offset, setOffset] = useState<string | undefined>(undefined);
-    const [emails, setEmails] = useState<string[]>([]);
     const [meetings, setMeetings] = useState<Meeting[]>([]);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const [isPopupVisible, setIsPopupVisible] = useState(false);
 
     const handleFetchMeetingsForAllUsers = async () => {
         let currentOffset: string | undefined = undefined;
@@ -84,14 +84,25 @@ export default function App() {
     useEffect(() => {
         handleFetchMeetingsForAllUsers();
     }, []);
+    
 
     return (
         <div>
             <Header />
             <div className="bg-light p-4">
-                <Calendar /> 
+                <Calendar
+                    onDateSelect={setSelectedDate}
+                    onIsPopupVisible={setIsPopupVisible}
+                />
                 <Meetings meetings={meetings}/>
             </div>
+            {isPopupVisible &&
+                <Popup
+                    date={selectedDate}
+                    meetings={meetings.filter(meeting => meeting.date === selectedDate)}
+                    onClose={() => setIsPopupVisible(false)}
+                />
+            }
         </div>
     )
 }

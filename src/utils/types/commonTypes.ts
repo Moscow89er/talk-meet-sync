@@ -16,3 +16,8 @@ export interface User {
     surname?: string;
     avatarUrl?: string;
 }
+
+export interface CalendarProps {
+    onDateSelect: (date: string) => void;
+    onIsPopupVisible: (isVisible: boolean) => void;
+}

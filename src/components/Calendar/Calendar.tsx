@@ -1,7 +1,8 @@
 import React, { useState } from "react";
+import { CalendarProps } from "../../utils/types/commonTypes";
 import "./Calendar.css";
 
-const Calendar: React.FC = () => {
+const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onIsPopupVisible }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [displayDate, setDisplayDate] = useState(new Date());
 
@@ -60,10 +61,13 @@ const Calendar: React.FC = () => {
           if (isNextMonth) className += " calendar__day--next";
     
           return (
-            <td key={dayIndex} className={className}>
-              {day}
+            <td
+              key={dayIndex}
+              className={className}
+              onClick={() => handleDayClick(day, !isPrevMonth && !isNextMonth)}>
+                {day}
             </td>
-          );
+        );
         })}
       </tr>
     ));
@@ -76,6 +80,18 @@ const Calendar: React.FC = () => {
   const handleNextMonth = () => {
       setDisplayDate(new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 1));
   };
+
+  const handleDayClick = (day: number, isCurrentMonthDay: boolean) => {
+    if (!isCurrentMonthDay) return; // Игнорируем клики по дням других месяцев
+
+    // Форматируем месяц и день, добавляя ведущий ноль при необходимости
+    const month = (displayDate.getMonth() + 1).toString().padStart(2, '0');
+    const formattedDay = day.toString().padStart(2, '0');
+    const formattedDate = `${displayDate.getFullYear()}-${month}-${formattedDay}`;
+    
+    onDateSelect(formattedDate);
+    onIsPopupVisible(true);
+};
 
   return (
     <div className="calendar__container">

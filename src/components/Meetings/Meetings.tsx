@@ -2,6 +2,8 @@ import React from "react";
 import { MeetingsProps } from "../../utils/types/commonTypes";
 
 const Meetings: React.FC<MeetingsProps> = ({ meetings }) => {
+    const slicedMeetings = meetings.slice().reverse().slice(0, 6);
+
     return (
         <div className="container">
         <div className="column">
@@ -11,7 +13,7 @@ const Meetings: React.FC<MeetingsProps> = ({ meetings }) => {
             </div>
             </div>
             <div className="row">
-                {Array.isArray(meetings) && meetings.map(meeting => (
+                {Array.isArray(slicedMeetings) && slicedMeetings.map(meeting => (
                     <div key={meeting.id} className="col-12 col-md-4 mb-3">
                         <div className="card h-100">
                             <div className="card-body">
