@@ -6,6 +6,10 @@ export interface Meeting {
     time: string;
 }
 
+export interface MeetingsProps {
+    meetings: Meeting[];
+}
+
 export interface User {
     email: string;
     firstname?: string;

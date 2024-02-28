@@ -1,40 +1,7 @@
-import React, { useState, useEffect } from "react";
-import mainApi from "../../utils/api/MainApi";
-import { Meeting } from "../../utils/types/commonTypes";
+import React from "react";
+import { MeetingsProps } from "../../utils/types/commonTypes";
 
-const fetchMeetings = async (): Promise<Meeting[]> => {
-    try {
-        const params = { email: "khubaev.n@yandex.ru" };
-        const response = await mainApi.getEmailCalendar(params);
-        
-        // Преобразование данных API в формат интерфейса Meeting
-        const meetingsData = response.items.map((item: any) => ({
-            id: item.id,
-            title: item.subject,
-            name: item.organizer.name,
-            date: item.start.substring(0, 10),
-            time: `${item.start.substring(11, 16)} - ${item.end.substring(11, 16)}`,
-        }));
-        return meetingsData;
-    } catch (error) {
-        console.error("Ошибка при получении данных о встречах:", error);
-        return [];
-    }
-};
-
-const Meetings: React.FC = () => {
-    const [meetings, setMeetings] = useState<Meeting[]>([]);
-
-    useEffect(() => {
-    fetchMeetings()
-      .then(data => {
-        setMeetings(data);
-      })
-      .catch(error => {
-        console.error("Ошибка при получении данных о встречах:", error);
-      });
-    }, []);
-
+const Meetings: React.FC<MeetingsProps> = ({ meetings }) => {
     return (
         <div className="container">
         <div className="column">

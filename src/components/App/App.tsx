@@ -4,28 +4,46 @@ import Calendar from "../Calendar/Calendar";
 import Meetings from "../Meetings/Meetings";
 import "bootstrap/dist/css/bootstrap.min.css";
 import mainApi from "../../utils/api/MainApi";
-import { User } from "../../utils/types/commonTypes";
+import { User, Meeting } from "../../utils/types/commonTypes";
 
-const API_KEY = process.env.REACT_APP_API_KEY
-
-console.log(API_KEY);
-
-const fetchUsers = async (top: number, offset?: string): Promise<User[]> => {
+const fetchUsers = async (top: number, offset?: string): Promise<{ users: User[], offset: string }> => {
     try {
         const params = { top, offset };
         const response = await mainApi.getUsers(params);
-        console.log(response); // Удалить после сборки
-        // Преобразование данных API в формат интерфейса Users
+        // Проверка, что мы получаем массив пользователей и значение offset из ответа
+        if (!response.users || !response.offset) {
+            throw new Error('Неправильный формат ответа API');
+        }
         const usersData: User[] = response.users.map((user: any) => ({
-            offset: offset,
             email: user.email,
             firstname: user.firstname,
             surname: user.surname,
             avatarUrl: user.avatarUrl,
         }));
-        return usersData;
+        // Возвращаем и пользователей, и offset
+        return { users: usersData, offset: response.offset };
     } catch (error) {
         console.error("Ошибка при получении данных о пользователях:", error);
+        return { users: [], offset: '' }; // Возвращаем пустой массив и пустую строку offset
+    }
+};
+
+const fetchMeetings = async (email: string): Promise<Meeting[]> => {
+    try {
+        const params = { email };
+        const response = await mainApi.getEmailCalendar(params);
+        
+        // Преобразование данных API в формат интерфейса Meeting
+        const meetingsData = response.items.map((item: any) => ({
+            id: item.id,
+            title: item.subject,
+            name: item.organizer.name,
+            date: item.start.substring(0, 10),
+            time: `${item.start.substring(11, 16)} - ${item.end.substring(11, 16)}`,
+        }));
+        return meetingsData;
+    } catch (error) {
+        console.error("Ошибка при получении данных о встречах:", error);
         return [];
     }
 };
@@ -33,25 +51,46 @@ const fetchUsers = async (top: number, offset?: string): Promise<User[]> => {
 export default function App() {
     const [users, setUsers] = useState<User[]>([]);
     const [offset, setOffset] = useState<string | undefined>(undefined);
+    const [emails, setEmails] = useState<string[]>([]);
+    const [meetings, setMeetings] = useState<Meeting[]>([]);
 
-    const handleFetchUsers = async () => {
-        const newUsers = await fetchUsers(10, offset);
-        if(newUsers.length > 0) {
-            setUsers(prevUsers => [...prevUsers, ...newUsers]);
-            setOffset(offset);
+    const handleFetchMeetingsForAllUsers = async () => {
+        let currentOffset: string | undefined = undefined;
+        let allUsers: User[] = [];
+        let hasMoreUsers: boolean = true;
+    
+        // Получаем пользователей постранично, пока есть данные
+        while (hasMoreUsers) {
+            const { users, offset: newOffset } = await fetchUsers(10, currentOffset);
+            if (users.length > 0) {
+                allUsers = [...allUsers, ...users];
+                currentOffset = newOffset;
+            } else {
+                hasMoreUsers = false;
+            }
         }
-    }
-
+    
+        // После получения списка всех пользователей, запросим встречи для каждого
+        const allMeetings = [];
+        for (const user of allUsers) {
+            const userMeetings = await fetchMeetings(user.email);
+            allMeetings.push(...userMeetings);
+        }
+    
+        // Устанавливаем полученные данные о встречах в состояние
+        setMeetings(allMeetings);
+    };
+    
     useEffect(() => {
-        handleFetchUsers();
-    }, [offset]);
+        handleFetchMeetingsForAllUsers();
+    }, []);
 
     return (
         <div>
             <Header />
             <div className="bg-light p-4">
                 <Calendar /> 
-                <Meetings />
+                <Meetings meetings={meetings}/>
             </div>
         </div>
     )
