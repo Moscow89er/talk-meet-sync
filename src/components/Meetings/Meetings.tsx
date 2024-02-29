@@ -1,5 +1,5 @@
 import React from "react";
-import { Meeting, MeetingsProps } from "../../utils/types/commonTypes";
+import { MeetingsProps } from "../../utils/types/commonTypes";
 
 const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings }) => {
     // Ограничиваем список до последних 6 встреч
@@ -10,7 +10,13 @@ const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings }) => {
             <div className="column">
                 <div className="row">
                     <div className="col-12">
-                        <h3 className="text-start my-4">Пересечение встреч</h3>
+                        {overlappingMeetings.length !== 0 
+                            ?
+                            <h3 className="text-start my-4">Пересечение встреч</h3>
+                            :
+                            <h3 className="text-start my-4">Пересечений между встречами нет</h3>
+                        }
+                        
                     </div>
                 </div>
                 <div className="row">

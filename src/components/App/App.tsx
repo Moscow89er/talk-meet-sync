@@ -8,9 +8,10 @@ import Popup from "../Popup/Popup";
 import mainApi from "../../utils/api/MainApi";
 import { User, Meeting } from "../../utils/types/commonTypes";
 
-export const formatDateAsMoscowTime = (dateString: string, options: Intl.DateTimeFormatOptions) => {
+export const formatDate = (dateString: string, options: Intl.DateTimeFormatOptions) => {
     const date = new Date(dateString);
-    const formatter = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Europe/Moscow', ...options });
+    // Опускаем timeZone, чтобы использовать локальные настройки пользователя
+    const formatter = new Intl.DateTimeFormat('ru-RU', { ...options });
     return formatter.format(date);
 };
 
@@ -46,9 +47,9 @@ const fetchMeetings = async (email: string): Promise<Meeting[]> => {
             id: item.id,
             title: item.subject,
             name: item.organizer.name,
-            date: formatDateAsMoscowTime(item.start, { year: 'numeric', month: '2-digit', day: '2-digit' }),
-            startTime: formatDateAsMoscowTime(item.start, { hour: '2-digit', minute: '2-digit' }),
-            endTime: formatDateAsMoscowTime(item.end, { hour: '2-digit', minute: '2-digit' }),
+            date: formatDate(item.start, { year: 'numeric', month: '2-digit', day: '2-digit' }),
+            startTime: formatDate(item.start, { hour: '2-digit', minute: '2-digit' }),
+            endTime: formatDate(item.end, { hour: '2-digit', minute: '2-digit' }),
         }));
         return meetingsData;
     } catch (error) {
@@ -154,7 +155,7 @@ export default function App() {
             {isPopupVisible &&
                 <Popup
                     date={selectedDate}
-                    meetings={meetings.filter(meeting => meeting.date === formatDateAsMoscowTime(selectedDate, { year: 'numeric', month: '2-digit', day: '2-digit' }))}
+                    meetings={meetings.filter(meeting => meeting.date === formatDate(selectedDate, { year: 'numeric', month: '2-digit', day: '2-digit' }))}
                     onClose={() => setIsPopupVisible(false)}
                 />
             }

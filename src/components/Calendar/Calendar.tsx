@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { CalendarProps } from "../../utils/types/commonTypes";
-import { formatDateAsMoscowTime } from "../App/App";
+import { formatDate } from "../App/App";
 import "./Calendar.css";
 
 const Calendar: React.FC<CalendarProps> = ({ 
@@ -15,7 +15,7 @@ const Calendar: React.FC<CalendarProps> = ({
   const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
   const isDateOverlapping = (day: number) => {
-    const date = formatDateAsMoscowTime(new Date(displayDate.getFullYear(), displayDate.getMonth(), day).toISOString(), {
+    const date = formatDate(new Date(displayDate.getFullYear(), displayDate.getMonth(), day).toISOString(), {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
@@ -24,7 +24,7 @@ const Calendar: React.FC<CalendarProps> = ({
   };
 
   const isDateWithMeeting = (day: number) => {
-    const date = formatDateAsMoscowTime(new Date(displayDate.getFullYear(), displayDate.getMonth(), day).toISOString(), {
+    const date = formatDate(new Date(displayDate.getFullYear(), displayDate.getMonth(), day).toISOString(), {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
@@ -76,9 +76,9 @@ const Calendar: React.FC<CalendarProps> = ({
       <tr key={index}>
         {week.map((day: number, dayIndex: number) => {
           const dayPosition = index * 7 + dayIndex; // Позиция дня в общем массиве дней
-          const isCurrentDay = isCurrentMonth && day === currentDay;
           const isPrevMonth = dayPosition < dayOfWeek - 1; // Если позиция дня меньше, чем смещение первого дня месяца
           const isNextMonth = dayPosition >= (dayOfWeek - 1 + numberOfDaysInMonth); // Если позиция дня больше или равна смещению плюс количество дней в месяце
+          const isCurrentDay = isCurrentMonth && day === currentDay && !isPrevMonth && !isNextMonth;
           let className = "calendar__day";
           if (isCurrentDay) className += " calendar__day--current";
           if (isPrevMonth) className += " calendar__day--prev";
@@ -112,15 +112,15 @@ const Calendar: React.FC<CalendarProps> = ({
 
   const handleDayClick = (day: number, isCurrentMonthDay: boolean) => {
     if (!isCurrentMonthDay) return; // Игнорируем клики по дням других месяцев
-
+  
     // Форматируем месяц и день, добавляя ведущий ноль при необходимости
     const month = (displayDate.getMonth() + 1).toString().padStart(2, '0');
     const formattedDay = day.toString().padStart(2, '0');
     const formattedDate = `${displayDate.getFullYear()}-${month}-${formattedDay}`;
-    
+  
     onDateSelect(formattedDate);
     onIsPopupVisible(true);
-};
+  };
 
   return (
     <div className="calendar__container">
