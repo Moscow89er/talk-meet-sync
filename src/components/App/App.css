@@ -1,0 +1,11 @@
+.full-height {
+    min-height: 100vh; /* 100% от высоты видимой части окна браузера */
+    display: flex;
+    flex-direction: column; /* Выстраиваем дочерние элементы в колонку */
+}
+  
+.content-expand {
+    flex: 1; /* Элемент займет все доступное пространство */
+    display: flex;
+    flex-direction: column;
+}

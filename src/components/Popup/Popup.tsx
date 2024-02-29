@@ -1,11 +1,5 @@
 import React from 'react';
-import { Meeting } from '../../utils/types/commonTypes';
-
-interface PopupProps {
-    date: string | null;
-    meetings: Meeting[];
-    onClose: () => void; // Функция для закрытия попапа
-}
+import { PopupProps } from '../../utils/types/commonTypes';
 
 const Popup: React.FC<PopupProps> = ({ date, meetings, onClose }) => {
     return (
@@ -22,7 +16,7 @@ const Popup: React.FC<PopupProps> = ({ date, meetings, onClose }) => {
                                 {meetings.map((meeting) => (
                                     <li key={meeting.id}>
                                         <strong>{meeting.title}</strong><br />
-                                        {meeting.date} {meeting.time}<br />
+                                        {meeting.date} | {meeting.startTime} - {meeting.endTime}<br />
                                         Организатор: {meeting.name}
                                     </li>
                                 ))}

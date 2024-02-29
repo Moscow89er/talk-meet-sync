@@ -19,5 +19,13 @@
 }
 
 .calendar__day:hover {
-  background-color: #f0f0f0; /* Или любой другой цвет фона при наведении */
+  background-color: #f0f0f0;
+}
+
+.calendar__day--overlapping {
+  background-color: lightcoral !important;
+}
+
+.calendar__day--meeting {
+  background-color: lightgreen !important;
 }

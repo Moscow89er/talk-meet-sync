@@ -1,12 +1,36 @@
 import React, { useState } from "react";
 import { CalendarProps } from "../../utils/types/commonTypes";
+import { formatDateAsMoscowTime } from "../App/App";
 import "./Calendar.css";
 
-const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onIsPopupVisible }) => {
+const Calendar: React.FC<CalendarProps> = ({ 
+  onDateSelect,
+  onIsPopupVisible,
+  overlappingMeetings,
+  meetings
+ }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [displayDate, setDisplayDate] = useState(new Date());
 
   const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
+  const isDateOverlapping = (day: number) => {
+    const date = formatDateAsMoscowTime(new Date(displayDate.getFullYear(), displayDate.getMonth(), day).toISOString(), {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    return overlappingMeetings.includes(date);
+  };
+
+  const isDateWithMeeting = (day: number) => {
+    const date = formatDateAsMoscowTime(new Date(displayDate.getFullYear(), displayDate.getMonth(), day).toISOString(), {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    return meetings.includes(date);
+  };
 
   const generateCalendar = (): JSX.Element[] => {
     const year = displayDate.getFullYear();
@@ -59,6 +83,11 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, onIsPopupVisible }) =
           if (isCurrentDay) className += " calendar__day--current";
           if (isPrevMonth) className += " calendar__day--prev";
           if (isNextMonth) className += " calendar__day--next";
+          if (isDateOverlapping(day)) {
+            className += " calendar__day--overlapping";
+          } else if (isDateWithMeeting(day)) {
+            className += " calendar__day--meeting";
+          }
     
           return (
             <td

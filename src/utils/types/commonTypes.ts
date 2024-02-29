@@ -3,11 +3,12 @@ export interface Meeting {
     title: string;
     name: string;
     date: string;
-    time: string;
+    startTime: string;
+    endTime: string;
 }
 
 export interface MeetingsProps {
-    meetings: Meeting[];
+    overlappingMeetings: Meeting[];
 }
 
 export interface User {
@@ -20,4 +21,12 @@ export interface User {
 export interface CalendarProps {
     onDateSelect: (date: string) => void;
     onIsPopupVisible: (isVisible: boolean) => void;
+    overlappingMeetings: string[];
+    meetings: string[];
+}
+
+export interface PopupProps {
+    date: string | null;
+    meetings: Meeting[];
+    onClose: () => void; // Функция для закрытия попапа
 }
