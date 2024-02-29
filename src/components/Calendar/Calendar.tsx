@@ -9,28 +9,10 @@ const Calendar: React.FC<CalendarProps> = ({
   overlappingMeetings,
   meetings
  }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [displayDate, setDisplayDate] = useState(new Date());
+  const currentDate = new Date();
 
   const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-
-  const isDateOverlapping = (day: number) => {
-    const date = formatDate(new Date(displayDate.getFullYear(), displayDate.getMonth(), day).toISOString(), {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-    return overlappingMeetings.includes(date);
-  };
-
-  const isDateWithMeeting = (day: number) => {
-    const date = formatDate(new Date(displayDate.getFullYear(), displayDate.getMonth(), day).toISOString(), {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-    return meetings.includes(date);
-  };
 
   const generateCalendar = (): JSX.Element[] => {
     const year = displayDate.getFullYear();
@@ -67,7 +49,7 @@ const Calendar: React.FC<CalendarProps> = ({
 
     // Подсветим текущую дату
     const isCurrentMonth = currentDate.getMonth() === displayDate.getMonth() &&
-      currentDate.getFullYear() === displayDate.getFullYear();
+    currentDate.getFullYear() === displayDate.getFullYear();
     
     const currentDay = currentDate.getDate();
 
@@ -83,6 +65,31 @@ const Calendar: React.FC<CalendarProps> = ({
           if (isCurrentDay) className += " calendar__day--current";
           if (isPrevMonth) className += " calendar__day--prev";
           if (isNextMonth) className += " calendar__day--next";
+
+          const isDateOverlapping = (day: number) => {
+            if (isPrevMonth || isNextMonth) {
+              return false; // Не проверяем дни из других месяцев
+            }
+            const date = formatDate(new Date(displayDate.getFullYear(), displayDate.getMonth(), day).toISOString(), {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit'
+            });
+            return overlappingMeetings.includes(date);
+          };
+          
+          const isDateWithMeeting = (day: number) => {
+            if (isPrevMonth || isNextMonth) {
+              return false; // Не проверяем дни из других месяцев
+            }
+            const date = formatDate(new Date(displayDate.getFullYear(), displayDate.getMonth(), day).toISOString(), {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit'
+            });
+            return meetings.includes(date);
+          };
+
           if (isDateOverlapping(day)) {
             className += " calendar__day--overlapping";
           } else if (isDateWithMeeting(day)) {

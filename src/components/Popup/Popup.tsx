@@ -22,7 +22,7 @@ const Popup: React.FC<PopupProps> = ({ date, meetings, onClose }) => {
                                 ))}
                             </ul>
                         ) : (
-                            <p>На эту дату встреч нет.</p>
+                            <p>На эту дату встречи не запланированы.</p>
                         )}
                     </div>
                     <div className="modal-footer">

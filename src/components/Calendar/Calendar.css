@@ -4,8 +4,12 @@
 }
 
 .calendar__day--current {
-    color: blue !important;
-    background-color: rgb(203, 225, 254) !important;
+  color: blue !important;
+  background-color: rgb(203, 225, 254) !important;
+}
+
+.calendar__day--current:hover {
+  background-color: rgb(210, 225, 245) !important;
 }
 
 .calendar__day--prev,
@@ -26,12 +30,12 @@
   background-color: rgb(248, 160, 160) !important;
 }
 
-.calendar__day--meeting {
-  background-color: rgb(205, 253, 205) !important;
-}
-
 .calendar__day--overlapping:hover {
   background-color: rgb(245, 194, 194) !important;
+}
+
+.calendar__day--meeting {
+  background-color: rgb(205, 253, 205) !important;
 }
 
 .calendar__day--meeting:hover {
