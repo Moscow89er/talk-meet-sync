@@ -5,6 +5,7 @@ import Header from "../Header/Header";
 import Calendar from "../Calendar/Calendar";
 import Meetings from "../Meetings/Meetings";
 import Popup from "../Popup/Popup";
+import MeetingsPopup from "../MeetingsPopup/MeetingsPopup";
 import { User, Meeting } from "../../utils/types/commonTypes";
 import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
@@ -96,11 +97,9 @@ export default function App() {
                 <Meetings overlappingMeetings={overlappingMeetings}/>
             </div>
             {isPopupVisible &&
-                <Popup
-                    date={selectedDate}
-                    meetings={filteredMeetingsForSelectedDate}
-                    onClose={closePopup}
-                />
+                <Popup onClose={() => setIsPopupVisible(false)}>
+                    <MeetingsPopup date={selectedDate} meetings={filteredMeetingsForSelectedDate} onClose={() => setIsPopupVisible(false)} />
+                </Popup>
             }
         </div>
     )

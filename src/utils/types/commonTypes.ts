@@ -26,7 +26,12 @@ export interface CalendarProps {
 }
 
 export interface PopupProps {
-    date: string | null;
+    children: React.ReactNode;
+    onClose: () => void;
+}
+
+export interface MeetingsPopupProps {
+    date: string;
     meetings: Meeting[];
-    onClose: () => void; // Функция для закрытия попапа
+    onClose: () => void;
 }
