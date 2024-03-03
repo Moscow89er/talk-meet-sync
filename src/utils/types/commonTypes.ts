@@ -7,6 +7,10 @@ export interface Meeting {
     endTime: string;
 }
 
+export interface Header {
+    onSettingsClick: (event: React.MouseEvent) => void;
+}
+
 export interface MeetingsProps {
     overlappingMeetings: Meeting[];
 }
@@ -26,6 +30,7 @@ export interface CalendarProps {
 }
 
 export interface PopupProps {
+    title: string;
     children: React.ReactNode;
     onClose: () => void;
 }
@@ -33,5 +38,4 @@ export interface PopupProps {
 export interface MeetingsPopupProps {
     date: string;
     meetings: Meeting[];
-    onClose: () => void;
 }

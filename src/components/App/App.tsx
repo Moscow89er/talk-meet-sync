@@ -6,6 +6,7 @@ import Calendar from "../Calendar/Calendar";
 import Meetings from "../Meetings/Meetings";
 import Popup from "../Popup/Popup";
 import MeetingsPopup from "../MeetingsPopup/MeetingsPopup";
+import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import { User, Meeting } from "../../utils/types/commonTypes";
 import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
@@ -16,7 +17,8 @@ export default function App() {
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
-    const [isPopupVisible, setIsPopupVisible] = useState(false);
+    const [activePopup, setActivePopup] = useState(null);
+    const [title, setTitle] = useState("");
 
     const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
     const daysWithOverlappingMeetings = useMemo(() => new Set(overlappingMeetings.map(m => m.date)), [overlappingMeetings]);
@@ -30,10 +32,6 @@ export default function App() {
         }
         return []; // Если selectedDate не строка, возвращаем пустой массив
     }, [meetings, selectedDate]);
-
-    const closePopup = useCallback(() => {
-        setIsPopupVisible(false);
-    }, []);
 
     const handleFetchMeetingsForAllUsers = async () => {
         let currentOffset: string | undefined = undefined;
@@ -79,28 +77,58 @@ export default function App() {
         setMeetings(allMeetings);
         setOverlappingMeetings(foundOverlappingMeetings); // Обновляем состояние с пересекающимися встречами
     };
+
+    const openMeetingsPopup = useCallback(() => {
+        setTitle(`Встречи на ${formatDate(selectedDate)}`);
+        setActivePopup('meetings');
+    }, [selectedDate]);
+      
+    const openSettingsPopup = useCallback(() => {
+        setTitle("НАСТРОЙКИ");
+        setActivePopup('settings');
+    }, []);
+
+    const closePopup = useCallback(() => {
+        setActivePopup(null);
+    }, []);
+
+    const handleSettingsClick = (event: React.MouseEvent) => {
+        event.preventDefault();
+        openSettingsPopup();
+    };
      
     useEffect(() => {
         handleFetchMeetingsForAllUsers();
     }, []);
+
+    useEffect(() => {
+        if (selectedDate != null) {
+          openMeetingsPopup();
+        }
+    }, [selectedDate, openMeetingsPopup]);
     
     return (
         <div className="full-height">
-            <Header />
+            <Header onSettingsClick={handleSettingsClick}/>
             <div className="content-expand bg-light p-4">
                 <Calendar
                     onDateSelect={setSelectedDate}
-                    onIsPopupVisible={setIsPopupVisible}
+                    onIsPopupVisible={openMeetingsPopup}
                     overlappingMeetings={Array.from(daysWithOverlappingMeetings)}
                     meetings={Array.from(daysWithMeetings)}
                 />
                 <Meetings overlappingMeetings={overlappingMeetings}/>
             </div>
-            {isPopupVisible &&
-                <Popup onClose={() => setIsPopupVisible(false)}>
-                    <MeetingsPopup date={selectedDate} meetings={filteredMeetingsForSelectedDate} onClose={() => setIsPopupVisible(false)} />
+            {activePopup === 'meetings' && (
+                <Popup title={title} onClose={closePopup}>
+                    <MeetingsPopup date={selectedDate} meetings={filteredMeetingsForSelectedDate} />
                 </Popup>
-            }
+            )}
+            {activePopup === 'settings' && (
+                <Popup title={title} onClose={closePopup}>
+                    <SettingsPopup onClose={closePopup} />
+                </Popup>
+            )}
         </div>
     )
 }

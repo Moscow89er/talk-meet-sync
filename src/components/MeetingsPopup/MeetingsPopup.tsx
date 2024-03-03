@@ -1,13 +1,9 @@
 import React from "react";
-import Popup from "../Popup/Popup";
-import { formatDate } from '../../utils/formatters/formatDate';
 import { MeetingsPopupProps } from "../../utils/types/commonTypes";
 
-const MeetingsPopup: React.FC<MeetingsPopupProps> = ({ date, meetings, onClose }) => {
+const MeetingsPopup: React.FC<MeetingsPopupProps> = ({ date, meetings }) => {
     return (
-        <Popup onClose={onClose}>
             <>
-                <h5 className="modal-title">Встречи на {formatDate(date)}</h5>
                 {meetings.length > 0 ? (
                     <ul>
                         {meetings.map((meeting) => (
@@ -22,7 +18,6 @@ const MeetingsPopup: React.FC<MeetingsPopupProps> = ({ date, meetings, onClose }
                     <p>На эту дату встречи не запланированы.</p>
                 )}
             </>
-        </Popup>
     );
 };
 

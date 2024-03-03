@@ -1,25 +1,15 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import "./Header.css";
+import { Header } from "../../utils/types/commonTypes";
 
-export default function Header() {
+const Header: React.FC<Header> = ( { onSettingsClick } ) => {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const [isSettingsPopupOpen, setIsSettingsPopupOpen] = useState(true);
+
     const dropdownRef = useRef<HTMLDivElement | null>(null);
 
     const handleToggleMenuOpen = (event: React.MouseEvent) => {
         event.preventDefault();
         setIsPopupOpen(!isPopupOpen);
-    };
-
-    const handleSettingsClick = (event: React.MouseEvent) => {
-        event.preventDefault();
-        setIsSettingsPopupOpen(true);
-        setIsPopupOpen(false); // Закрытие выпадающего меню, если оно открыто
-    };
-
-    const handleCloseSettings = () => {
-        setIsSettingsPopupOpen(false);
     };
 
     const handleClickOutside = useCallback((event: MouseEvent) => {
@@ -62,16 +52,16 @@ export default function Header() {
                     </button>
                     {isPopupOpen && 
                         <ul className="dropdown-menu dropdown-menu-end show" data-bs-popper="static">
-                            <li><button className="dropdown-item" onClick={handleSettingsClick}>Настройки</button></li>
-                            <li><a className="dropdown-item" href="#">Профиль</a></li>
+                            <li><button className="dropdown-item" onClick={onSettingsClick}>Настройки</button></li>
                             <li><hr className="dropdown-divider" /></li>
                             <li><a className="dropdown-item" href="#">Выйти</a></li>
                         </ul>
                     }
                 </div>
-                {isSettingsPopupOpen && <SettingsPopup onClose={handleCloseSettings} />}
             </div>
             
         </header>
     );
 }
+
+export default Header;
