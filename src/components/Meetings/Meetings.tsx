@@ -26,7 +26,7 @@ const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings }) => {
             <div className="column">
                 <div className="row">
                     <div className="col-12">
-                        <h3 className="text-start my-4">{headerText}</h3>
+                        <h3 className="text-start my-4 fw-bold">{headerText}</h3>
                     </div>
                 </div>
                 <div className="row">

@@ -1,30 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SettingsPopupProps } from '../../utils/types/commonTypes';
 
-const SettingsPopup: React.FC<SettingsPopupProps> = ({ onSave, talkUrl, setTalkUrl, apiKey, setApiKey }) => {
+const SettingsPopup: React.FC<SettingsPopupProps> = ({ onSave, talkUrl: initialTalkUrl, apiKey: initialApiKey }) => {
+  // Создаем локальные состояния для временного хранения введенных данных
+  const [tempTalkUrl, setTempTalkUrl] = useState(initialTalkUrl);
+  const [tempApiKey, setTempApiKey] = useState(initialApiKey);
+
+  // Обработчик нажатия на кнопку "Сохранить", который вызывает onSave с текущими значениями локальных состояний
+  const handleSaveClick = () => {
+    onSave(tempTalkUrl, tempApiKey);
+  };
+
   return (
     <>
       <div className="modal-body">
         <form>
-          <div className="mb-3">
+          <div className="mb-3 fw-bold">
             <label htmlFor="talkUrl" className="form-label">Адрес пространства Толк</label>
             <input
               type="url"
               className="form-control"
               id="talkUrl"
-              value={talkUrl}
-              onChange={(e) => setTalkUrl(e.target.value)}
-              placeholder="Введите адрес API"
+              value={tempTalkUrl}
+              onChange={(e) => setTempTalkUrl(e.target.value)}
+              placeholder="Введите адрес пространства Толк"
             />
           </div>
-          <div className="mb-3">
+          <div className="mb-3 fw-bold">
             <label htmlFor="apiKey" className="form-label">Ключ API</label>
             <input
               type="text"
               className="form-control"
               id="apiKey"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              value={tempApiKey}
+              onChange={(e) => setTempApiKey(e.target.value)}
               placeholder="Введите ключ API"
             />
           </div>
@@ -33,9 +42,9 @@ const SettingsPopup: React.FC<SettingsPopupProps> = ({ onSave, talkUrl, setTalkU
       <div className="modal-footer">
         <button
           type="button"
-          className={`btn btn-primary ${!talkUrl || !apiKey ? 'disabled' : ''}`}
-          onClick={onSave}
-          disabled={!talkUrl || !apiKey}
+          className="btn btn-primary"
+          onClick={handleSaveClick}
+          disabled={!tempTalkUrl || !tempApiKey}
         >
           Сохранить
         </button>

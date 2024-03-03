@@ -20,6 +20,18 @@ export default class MainApi {
             .join('&');
     }
 
+    public updateConfig(options: { url?: string; apiKey?: string }): void {
+        if (options.url) {
+            this._url = options.url;
+        }
+        if (options.apiKey) {
+            this._headers = {
+                ...this._headers,
+                "X-Auth-Token": options.apiKey,
+            };
+        }
+    }
+
     public getEmailCalendar(params: EmailCalendarParams): Promise<any> {
         const queryString = this._getQueryString(params);
 

@@ -23,19 +23,22 @@ export default function App() {
     const [talkUrl, setTalkUrl] = useState(localStorage.getItem("talkUrl") || "");
     const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
     const [mainApi, setMainApi] = useState(new MainApi({
-        url: localStorage.getItem("talkUrl") || ""
+        url: talkUrl
     }));
 
     const handleSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string) => {
-        setTalkUrl(newTalkUrl);
-        setApiKey(newApiKey);
         localStorage.setItem('talkUrl', newTalkUrl);
         localStorage.setItem('apiKey', newApiKey);
+    
+        setTalkUrl(newTalkUrl);
+        setApiKey(newApiKey);
+    
         const updatedApiInstance = new MainApi({
-            url: talkUrl
+            url: newTalkUrl
         });
-        handleFetchMeetingsForAllUsers(mainApi);
+        updatedApiInstance.updateConfig({ apiKey: newApiKey });
         setMainApi(updatedApiInstance);
+    
         closePopup();
     }, []);
 
@@ -118,10 +121,19 @@ export default function App() {
     }, [selectedDate, openMeetingsPopup]);
 
     useEffect(() => {
+        // Эффект для синхронизации с localStorage
+        localStorage.setItem('talkUrl', talkUrl);
+        localStorage.setItem('apiKey', apiKey);
+
+        // Обновление экземпляра API, если необходимо
+        mainApi.updateConfig({ url: talkUrl });
+    }, [talkUrl, apiKey, mainApi]);
+
+    useEffect(() => {
         if (talkUrl && apiKey) {
             handleFetchMeetingsForAllUsers(mainApi);
         }
-    }, [talkUrl, apiKey, mainApi, handleFetchMeetingsForAllUsers]);
+    }, [talkUrl, apiKey, mainApi]);
     
     return (
         <div className="full-height">
@@ -143,11 +155,9 @@ export default function App() {
             {activePopup === 'settings' && (
                 <Popup title={title} onClose={closePopup}>
                     <SettingsPopup
-                        onSave={() => handleSaveApiSettings(talkUrl, apiKey)}
+                        onSave={handleSaveApiSettings}
                         talkUrl={talkUrl}
-                        setTalkUrl={setTalkUrl}
                         apiKey={apiKey}
-                        setApiKey={setApiKey}
                     />
                 </Popup>
             )}
