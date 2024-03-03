@@ -35,7 +35,7 @@ const Header: React.FC<Header> = ( { onSettingsClick } ) => {
                 </svg>
 
                 <div onClick={handleToggleMenuOpen} className="dropdown" ref={dropdownRef}>
-                    <button 
+                    <button
                         className="reset-button-style d-block link-body-emphasis text-decoration-none dropdown-toggle" 
                         onClick={handleToggleMenuOpen}
                         aria-label="Toggle user menu"
@@ -43,7 +43,7 @@ const Header: React.FC<Header> = ( { onSettingsClick } ) => {
                         aria-haspopup="true"
                     >
                         <img
-                            src="https://downloader.disk.yandex.ru/preview/ab0d5332aa600d28fa384ee98a4b84ea6b2cc2f4b3d4f12ea49a77c1603fc470/65dc54ce/6O60qL2_sCBhO1icjCb8y9uvl-7ulaEEsaNXf4YvoPIFw1rBHkyuZ30uxcSWoDNvwsR1JRf2VoMldFwMbeLUGg%3D%3D?uid=0&filename=about-me_photo.jpg&disposition=inline&hash=&limit=0&content_type=image%2Fjpeg&owner_uid=0&tknv=v2&size=1921x964"
+                            src="https://3.downloader.disk.yandex.ru/preview/f643e89c556b5f4a6224a70ee36c117fa038c670ea66c513e1200eb3c08eeff7/inf/Hw51y9e4-JVVfV06s2WWdsC_Xjcpo7SbNrxVa70KzbD5DDRi_5kjUvp_3y4F1zClDgXagBvBMcOLHwGD93QTZg%3D%3D?uid=250429910&filename=default_img.jpg&disposition=inline&hash=&limit=0&content_type=image%2Fpng&owner_uid=250429910&tknv=v2&size=1921x964"
                             alt="My image"
                             width="32"
                             height="32"

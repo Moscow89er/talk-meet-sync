@@ -10,3 +10,8 @@
     object-fit: cover;
     max-width: 100%;
 }
+
+.dropdown:hover {
+    background-color: rgb(241, 241, 241);
+    transition: background-color 0.3s ease;
+}

@@ -11,12 +11,13 @@ import { User, Meeting } from "../../utils/types/commonTypes";
 import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
 import { compareMeetings } from "../../utils/helpers/compareMeetings";
-import { isOverlapping } from "../../utils/helpers/compareMeetings";
+import { parseDate } from "../../utils/helpers/compareMeetings";
 import MainApi from "../../utils/api/MainApi";
 
 export default function App() {
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
+    const [numsOfLicence, setNumsOfLicense] = useState<number>(1);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [activePopup, setActivePopup] = useState(null);
     const [title, setTitle] = useState("");
@@ -26,12 +27,13 @@ export default function App() {
         url: talkUrl
     }));
 
-    const handleSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string) => {
+    const handleSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string, newNumsOfLicense: number) => {
         localStorage.setItem('talkUrl', newTalkUrl);
         localStorage.setItem('apiKey', newApiKey);
     
         setTalkUrl(newTalkUrl);
         setApiKey(newApiKey);
+        setNumsOfLicense(newNumsOfLicense);
     
         const updatedApiInstance = new MainApi({
             url: newTalkUrl
@@ -77,18 +79,25 @@ export default function App() {
         const sortedMeetings = [...allMeetings].sort(compareMeetings);
     
         let foundOverlappingMeetings: Meeting[] = [];
-    
-        sortedMeetings.forEach((meeting, i) => {
-            sortedMeetings.slice(i + 1).forEach(otherMeeting => {
-                if (isOverlapping(meeting, otherMeeting)) {
-                    if (!foundOverlappingMeetings.some(m => m.id === meeting.id)) {
-                        foundOverlappingMeetings.push(meeting);
-                    }
-                    if (!foundOverlappingMeetings.some(m => m.id === otherMeeting.id)) {
-                        foundOverlappingMeetings.push(otherMeeting);
-                    }
-                }
-            });
+        const meetingCount: Record<number, number> = {}; // Map to keep track of meetings count
+
+        let startTimeGroups: Record<string, Meeting[]> = {};
+
+        // Group meetings by their start times
+        sortedMeetings.forEach(meeting => {
+            const startTime = parseDate(meeting.date, meeting.startTime).getTime().toString();
+            if (!startTimeGroups[startTime]) {
+                startTimeGroups[startTime] = [];
+            }
+            startTimeGroups[startTime].push(meeting);
+        });
+
+        // Check each group against numsOfLicence
+        Object.keys(startTimeGroups).forEach(time => {
+            if (startTimeGroups[time].length > numsOfLicence) {
+                // If the number of meetings at this start time exceeds numsOfLicence, consider all as overlapping
+                foundOverlappingMeetings = foundOverlappingMeetings.concat(startTimeGroups[time]);
+            }
         });
     
         setMeetings(sortedMeetings);
@@ -158,6 +167,7 @@ export default function App() {
                         onSave={handleSaveApiSettings}
                         talkUrl={talkUrl}
                         apiKey={apiKey}
+                        numsOfLicense={numsOfLicence}
                     />
                 </Popup>
             )}

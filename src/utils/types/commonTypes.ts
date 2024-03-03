@@ -41,7 +41,8 @@ export interface MeetingsPopupProps {
 }
 
 export interface SettingsPopupProps {
-    onSave: (newTalkUrl: string, newApiKey: string) => void;
+    onSave: (newTalkUrl: string, newApiKey: string, newNumsOfLicense: number) => void;
     talkUrl: string;
     apiKey: string;
+    numsOfLicense: number;
 }
