@@ -12,6 +12,7 @@ import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
 import { compareMeetings } from "../../utils/helpers/compareMeetings";
 import { isOverlapping } from "../../utils/helpers/compareMeetings";
+import MainApi from "../../utils/api/MainApi";
 
 export default function App() {
     const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -19,6 +20,24 @@ export default function App() {
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [activePopup, setActivePopup] = useState(null);
     const [title, setTitle] = useState("");
+    const [talkUrl, setTalkUrl] = useState(localStorage.getItem("talkUrl") || "");
+    const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
+    const [mainApi, setMainApi] = useState(new MainApi({
+        url: localStorage.getItem("talkUrl") || ""
+    }));
+
+    const handleSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string) => {
+        setTalkUrl(newTalkUrl);
+        setApiKey(newApiKey);
+        localStorage.setItem('talkUrl', newTalkUrl);
+        localStorage.setItem('apiKey', newApiKey);
+        const updatedApiInstance = new MainApi({
+            url: talkUrl
+        });
+        handleFetchMeetingsForAllUsers(mainApi);
+        setMainApi(updatedApiInstance);
+        closePopup();
+    }, []);
 
     const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
     const daysWithOverlappingMeetings = useMemo(() => new Set(overlappingMeetings.map(m => m.date)), [overlappingMeetings]);
@@ -33,51 +52,46 @@ export default function App() {
         return []; // Если selectedDate не строка, возвращаем пустой массив
     }, [meetings, selectedDate]);
 
-    const handleFetchMeetingsForAllUsers = async () => {
+    const handleFetchMeetingsForAllUsers = async (apiInstance: MainApi) => {
         let currentOffset: string | undefined = undefined;
         let allUsers: User[] = [];
-        let hasMoreUsers: boolean = true;
+        let hasMoreUsers = true;
     
-        // Получаем пользователей постранично, пока есть данные
         while (hasMoreUsers) {
-            const { users, offset: newOffset } = await fetchUsers(10, currentOffset);
-            if (users.length > 0) {
-                allUsers = [...allUsers, ...users];
-                currentOffset = newOffset;
+            const response = await fetchUsers(apiInstance, 10, currentOffset);
+            if (response.users.length > 0) {
+                allUsers = [...allUsers, ...response.users];
+                currentOffset = response.offset;
             } else {
                 hasMoreUsers = false;
             }
         }
     
-        // После получения списка всех пользователей, запросим встречи для каждого
-        const meetingsPromises = allUsers.map(user => fetchMeetings(user.email));
+        const meetingsPromises = allUsers.map(user => fetchMeetings(apiInstance, user.email));
         const meetingsResults = await Promise.all(meetingsPromises);
         const allMeetings = meetingsResults.flat();
     
-        // Сортируем встречи по времени начала
-        const sortedMeetings = [...allMeetings].sort(compareMeetings); // Используйте allMeetings здесь
+        const sortedMeetings = [...allMeetings].sort(compareMeetings);
     
-        // Находим пересекающиеся встречи
         let foundOverlappingMeetings: Meeting[] = [];
     
         sortedMeetings.forEach((meeting, i) => {
             sortedMeetings.slice(i + 1).forEach(otherMeeting => {
-              if (isOverlapping(meeting, otherMeeting)) {
-                if (!foundOverlappingMeetings.some(m => m.id === meeting.id)) {
-                  foundOverlappingMeetings.push(meeting);
+                if (isOverlapping(meeting, otherMeeting)) {
+                    if (!foundOverlappingMeetings.some(m => m.id === meeting.id)) {
+                        foundOverlappingMeetings.push(meeting);
+                    }
+                    if (!foundOverlappingMeetings.some(m => m.id === otherMeeting.id)) {
+                        foundOverlappingMeetings.push(otherMeeting);
+                    }
                 }
-                if (!foundOverlappingMeetings.some(m => m.id === otherMeeting.id)) {
-                  foundOverlappingMeetings.push(otherMeeting);
-                }
-              }
             });
-          });
-          
-        // Устанавливаем полученные данные о встречах в состояние
-        setMeetings(allMeetings);
-        setOverlappingMeetings(foundOverlappingMeetings); // Обновляем состояние с пересекающимися встречами
+        });
+    
+        setMeetings(sortedMeetings);
+        setOverlappingMeetings(foundOverlappingMeetings);
     };
-
+    
     const openMeetingsPopup = useCallback(() => {
         setTitle(`Встречи на ${formatDate(selectedDate)}`);
         setActivePopup('meetings');
@@ -96,16 +110,18 @@ export default function App() {
         event.preventDefault();
         openSettingsPopup();
     };
-     
-    useEffect(() => {
-        handleFetchMeetingsForAllUsers();
-    }, []);
 
     useEffect(() => {
         if (selectedDate != null) {
           openMeetingsPopup();
         }
     }, [selectedDate, openMeetingsPopup]);
+
+    useEffect(() => {
+        if (talkUrl && apiKey) {
+            handleFetchMeetingsForAllUsers(mainApi);
+        }
+    }, [talkUrl, apiKey, mainApi, handleFetchMeetingsForAllUsers]);
     
     return (
         <div className="full-height">
@@ -126,7 +142,13 @@ export default function App() {
             )}
             {activePopup === 'settings' && (
                 <Popup title={title} onClose={closePopup}>
-                    <SettingsPopup onClose={closePopup} />
+                    <SettingsPopup
+                        onSave={() => handleSaveApiSettings(talkUrl, apiKey)}
+                        talkUrl={talkUrl}
+                        setTalkUrl={setTalkUrl}
+                        apiKey={apiKey}
+                        setApiKey={setApiKey}
+                    />
                 </Popup>
             )}
         </div>

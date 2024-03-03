@@ -1,6 +1,6 @@
 import { ApiOptions, EmailCalendarParams, UsersParams } from "../types/apiTypes";
 
-class MainApi {
+export default class MainApi {
     private _url: string;
     private _headers: HeadersInit;
 
@@ -9,7 +9,7 @@ class MainApi {
         // Добавляем API-ключ в заголовки при создании экземпляра класса
         this._headers = {
             "Content-Type": "application/json",
-            "X-Auth-Token": process.env.REACT_APP_API_KEY,
+            "X-Auth-Token": localStorage.getItem("apiKey") || "",
         };
     }
 
@@ -51,9 +51,3 @@ class MainApi {
             .catch(err => console.error(err));
     }
 }
-
-const mainApi = new MainApi({
-    url: "https://khubaev.ktalk.ru/api/",
-});
-
-export default mainApi;

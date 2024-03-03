@@ -53,8 +53,6 @@ const Header: React.FC<Header> = ( { onSettingsClick } ) => {
                     {isPopupOpen && 
                         <ul className="dropdown-menu dropdown-menu-end show" data-bs-popper="static">
                             <li><button className="dropdown-item" onClick={onSettingsClick}>Настройки</button></li>
-                            <li><hr className="dropdown-divider" /></li>
-                            <li><a className="dropdown-item" href="#">Выйти</a></li>
                         </ul>
                     }
                 </div>

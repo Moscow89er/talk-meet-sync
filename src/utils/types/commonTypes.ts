@@ -39,3 +39,11 @@ export interface MeetingsPopupProps {
     date: string;
     meetings: Meeting[];
 }
+
+export interface SettingsPopupProps {
+    onSave: () => void;
+    talkUrl: string;
+    setTalkUrl: (url: string) => void;
+    apiKey: string;
+    setApiKey: (key: string) => void;
+}

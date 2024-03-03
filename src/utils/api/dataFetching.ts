@@ -1,8 +1,8 @@
-import mainApi from "./MainApi";
 import { User, Meeting } from "../types/commonTypes";
 import { formatDate } from "../formatters/formatDate";
+import MainApi from "./MainApi";
 
-export const fetchUsers = async (top: number, offset?: string): Promise<{ users: User[], offset: string }> => {
+export const fetchUsers = async (mainApi: MainApi, top: number, offset?: string): Promise<{ users: User[], offset: string }> => {
     try {
         const params = { top, offset };
         const response = await mainApi.getUsers(params);
@@ -24,7 +24,7 @@ export const fetchUsers = async (top: number, offset?: string): Promise<{ users:
     }
 };
 
-export const fetchMeetings = async (email: string): Promise<Meeting[]> => {
+export const fetchMeetings = async (mainApi: MainApi, email: string): Promise<Meeting[]> => {
     try {
         const params = { email };
         const response = await mainApi.getEmailCalendar(params);

@@ -1,5 +1,5 @@
 export interface ApiOptions {
-    url: string;
+    url?: string;
 }
 
 export interface EmailCalendarParams {
