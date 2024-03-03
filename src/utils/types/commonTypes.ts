@@ -46,3 +46,11 @@ export interface SettingsPopupProps {
     apiKey: string;
     numsOfLicense: number;
 }
+
+export interface InfoTooltipProps {
+    isOpen: boolean;
+    onClose: () => void;
+    isError: boolean;
+    tooltipConfirm: string;
+    tooltipError: string;
+}

@@ -20,6 +20,13 @@ export default class MainApi {
             .join('&');
     }
 
+    private _checkResponse(response: Response) {
+        if (response.ok) {
+            return response.json();
+        }
+        return Promise.reject(`Ошибка: ${response.status}`);
+    }
+
     public updateConfig(options: { url?: string; apiKey?: string }): void {
         if (options.url) {
             this._url = options.url;
@@ -39,13 +46,7 @@ export default class MainApi {
             method: 'GET',
             headers: this._headers,
         })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error(`Ошибка: ${response.status}`);
-            })
-            .catch(err => console.error(err));
+            .then(this._checkResponse);
     }
 
     public getUsers(params: UsersParams): Promise<any> {
@@ -54,12 +55,6 @@ export default class MainApi {
             method: 'GET',
             headers: this._headers,
         })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error(`Ошибка: ${response.status}`);
-            })
-            .catch(err => console.error(err));
+            .then(this._checkResponse);
     }
 }

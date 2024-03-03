@@ -7,6 +7,8 @@ import Meetings from "../Meetings/Meetings";
 import Popup from "../Popup/Popup";
 import MeetingsPopup from "../MeetingsPopup/MeetingsPopup";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
+import InfoTooltip from "../InfoTooltip/InfoTooltip";
+import Preloader from "../Preloader/Preloader";
 import { User, Meeting } from "../../utils/types/commonTypes";
 import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
@@ -20,6 +22,9 @@ export default function App() {
     const [numsOfLicence, setNumsOfLicense] = useState<number>(1);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [activePopup, setActivePopup] = useState(null);
+    const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState<boolean>(false);
+    const [isError, setIsError] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [title, setTitle] = useState("");
     const [talkUrl, setTalkUrl] = useState(localStorage.getItem("talkUrl") || "");
     const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
@@ -27,21 +32,24 @@ export default function App() {
         url: talkUrl
     }));
 
-    const handleSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string, newNumsOfLicense: number) => {
-        localStorage.setItem('talkUrl', newTalkUrl);
-        localStorage.setItem('apiKey', newApiKey);
+    const handleSaveApiSettings = useCallback(async (newTalkUrl: string, newApiKey: string, newNumsOfLicense: number) => {
+        try {
+            localStorage.setItem('talkUrl', newTalkUrl);
+            localStorage.setItem('apiKey', newApiKey);
     
-        setTalkUrl(newTalkUrl);
-        setApiKey(newApiKey);
-        setNumsOfLicense(newNumsOfLicense);
+            setTalkUrl(newTalkUrl);
+            setApiKey(newApiKey);
+            setNumsOfLicense(newNumsOfLicense);
     
-        const updatedApiInstance = new MainApi({
-            url: newTalkUrl
-        });
-        updatedApiInstance.updateConfig({ apiKey: newApiKey });
-        setMainApi(updatedApiInstance);
-    
-        closePopup();
+            const updatedApiInstance = new MainApi({ url: newTalkUrl });
+            updatedApiInstance.updateConfig({ apiKey: newApiKey });
+            setMainApi(updatedApiInstance);
+            setActivePopup(null);
+            setIsError(false);
+            setIsInfoTooltipOpen(true);
+        } catch (error) {
+            console.error("Ошибка при сохранении настроек:", error);
+        }
     }, []);
 
     const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
@@ -58,50 +66,57 @@ export default function App() {
     }, [meetings, selectedDate]);
 
     const handleFetchMeetingsForAllUsers = async (apiInstance: MainApi) => {
-        let currentOffset: string | undefined = undefined;
-        let allUsers: User[] = [];
-        let hasMoreUsers = true;
-    
-        while (hasMoreUsers) {
-            const response = await fetchUsers(apiInstance, 10, currentOffset);
-            if (response.users.length > 0) {
-                allUsers = [...allUsers, ...response.users];
-                currentOffset = response.offset;
-            } else {
-                hasMoreUsers = false;
+        setIsLoading(true);
+        try {
+            let currentOffset: string | undefined = undefined;
+            let allUsers: User[] = [];
+            let hasMoreUsers = true;
+        
+            while (hasMoreUsers) {
+                const response = await fetchUsers(apiInstance, 10, currentOffset);
+                if (response.users.length > 0) {
+                    allUsers = [...allUsers, ...response.users];
+                    currentOffset = response.offset;
+                } else {
+                    hasMoreUsers = false;
+                }
             }
+        
+            const meetingsPromises = allUsers.map(user => fetchMeetings(apiInstance, user.email));
+            const meetingsResults = await Promise.all(meetingsPromises);
+            const allMeetings = meetingsResults.flat();
+        
+            const sortedMeetings = [...allMeetings].sort(compareMeetings);
+        
+            let foundOverlappingMeetings: Meeting[] = [];
+            let startTimeGroups: Record<string, Meeting[]> = {};
+
+            // Группируем встречи по времени начала
+            sortedMeetings.forEach(meeting => {
+                const startTime = parseDate(meeting.date, meeting.startTime).getTime().toString();
+                if (!startTimeGroups[startTime]) {
+                    startTimeGroups[startTime] = [];
+                }
+                startTimeGroups[startTime].push(meeting);
+            });
+
+            // Сверяем каждую группу с numsOfLicence
+            Object.keys(startTimeGroups).forEach(time => {
+                if (startTimeGroups[time].length > numsOfLicence) {
+                    // Если количество встреч превышает numsOfLicence, считаем все как пересекающиеся
+                    foundOverlappingMeetings = foundOverlappingMeetings.concat(startTimeGroups[time]);
+                }
+            });
+        
+            setMeetings(sortedMeetings);
+            setOverlappingMeetings(foundOverlappingMeetings);
+        } catch(error) {
+            console.error("Ошибка при получении данных о встречах:", error);
+            setIsError(true);
+            setIsInfoTooltipOpen(true);
+        } finally {
+            setIsLoading(false);
         }
-    
-        const meetingsPromises = allUsers.map(user => fetchMeetings(apiInstance, user.email));
-        const meetingsResults = await Promise.all(meetingsPromises);
-        const allMeetings = meetingsResults.flat();
-    
-        const sortedMeetings = [...allMeetings].sort(compareMeetings);
-    
-        let foundOverlappingMeetings: Meeting[] = [];
-        const meetingCount: Record<number, number> = {}; // Map to keep track of meetings count
-
-        let startTimeGroups: Record<string, Meeting[]> = {};
-
-        // Group meetings by their start times
-        sortedMeetings.forEach(meeting => {
-            const startTime = parseDate(meeting.date, meeting.startTime).getTime().toString();
-            if (!startTimeGroups[startTime]) {
-                startTimeGroups[startTime] = [];
-            }
-            startTimeGroups[startTime].push(meeting);
-        });
-
-        // Check each group against numsOfLicence
-        Object.keys(startTimeGroups).forEach(time => {
-            if (startTimeGroups[time].length > numsOfLicence) {
-                // If the number of meetings at this start time exceeds numsOfLicence, consider all as overlapping
-                foundOverlappingMeetings = foundOverlappingMeetings.concat(startTimeGroups[time]);
-            }
-        });
-    
-        setMeetings(sortedMeetings);
-        setOverlappingMeetings(foundOverlappingMeetings);
     };
     
     const openMeetingsPopup = useCallback(() => {
@@ -114,8 +129,9 @@ export default function App() {
         setActivePopup('settings');
     }, []);
 
-    const closePopup = useCallback(() => {
+    const closePopups = useCallback(() => {
         setActivePopup(null);
+        setIsInfoTooltipOpen(false);
     }, []);
 
     const handleSettingsClick = (event: React.MouseEvent) => {
@@ -146,6 +162,7 @@ export default function App() {
     
     return (
         <div className="full-height">
+            {isLoading && <Preloader />}
             <Header onSettingsClick={handleSettingsClick}/>
             <div className="content-expand bg-light p-4">
                 <Calendar
@@ -157,12 +174,12 @@ export default function App() {
                 <Meetings overlappingMeetings={overlappingMeetings}/>
             </div>
             {activePopup === 'meetings' && (
-                <Popup title={title} onClose={closePopup}>
+                <Popup title={title} onClose={closePopups}>
                     <MeetingsPopup date={selectedDate} meetings={filteredMeetingsForSelectedDate} />
                 </Popup>
             )}
             {activePopup === 'settings' && (
-                <Popup title={title} onClose={closePopup}>
+                <Popup title={title} onClose={closePopups}>
                     <SettingsPopup
                         onSave={handleSaveApiSettings}
                         talkUrl={talkUrl}
@@ -171,6 +188,14 @@ export default function App() {
                     />
                 </Popup>
             )}
+            <InfoTooltip
+                isOpen={isInfoTooltipOpen}
+                isError={isError}
+                onClose={closePopups}
+                tooltipConfirm="Данные сохранены успешно!"
+                tooltipError="Что-то пошло не так!
+                Попробуйте ещё раз."
+            />
         </div>
     )
 }

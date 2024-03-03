@@ -39,7 +39,11 @@ export default {
                         presets: ['@babel/preset-env', '@babel/preset-react', '@babel/preset-typescript'],
                     }
                 }
-            }
+            },
+            {
+                test: /\.(png|jpe?g|gif|svg)$/i,
+                type: 'asset/resource',
+            },
         ]
     },
     plugins: [
