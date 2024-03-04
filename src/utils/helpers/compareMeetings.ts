@@ -1,6 +1,7 @@
 import { Meeting } from "../types/commonTypes";
 import { formatDate } from "../formatters/formatDate";
 
+// Функция преобразования даты и времени в объект Date требуемого нам формата
 export const parseDate = (dateString: string, timeString: string) => {
     const [day, month, year] = dateString.split(".");
     const [hours, minutes] = timeString.split(":");

@@ -13,7 +13,9 @@ const Calendar: React.FC<CalendarProps> = ({
   const [displayDate, setDisplayDate] = useState(new Date());
   const currentDate = new Date();
 
+  // Функция генерирующая календарь
   const generateCalendar = (): JSX.Element[] => {
+    // Определяем базовые переменные
     const year = displayDate.getFullYear();
     const month = displayDate.getMonth();
     const firstDayOfMonth = new Date(year, month, 1).getDay();
@@ -49,7 +51,6 @@ const Calendar: React.FC<CalendarProps> = ({
     // Подсветим текущую дату
     const isCurrentMonth = currentDate.getMonth() === displayDate.getMonth() &&
     currentDate.getFullYear() === displayDate.getFullYear();
-    
     const currentDay = currentDate.getDate();
 
     return weeks.map((week: number[], index: number) => (
@@ -78,7 +79,7 @@ const Calendar: React.FC<CalendarProps> = ({
               onClick={() => handleDayClick(day, !isPrevMonth && !isNextMonth)}>
                 {day}
             </td>
-        );
+          );
         })}
       </tr>
     ));

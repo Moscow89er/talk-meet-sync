@@ -13,13 +13,19 @@ export default class MainApi {
         };
     }
 
+    // Метод для создания строки запроса из переданных параметров
     private _getQueryString(params: Record<string, any>): string {
+        // Получение ключей объекта
         return Object.keys(params)
+            // Фильтрация ключей
             .filter(key => params[key] !== undefined)
+            // Преобразование пар ключ-значение в строки
             .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+            // Соединение строк
             .join("&");
     }
 
+    // Метод для проверки ответа от сервера
     private _checkResponse(response: Response) {
         if (response.ok) {
             return response.json();
@@ -27,6 +33,7 @@ export default class MainApi {
         return Promise.reject(`Ошибка: ${response.status}`);
     }
 
+    // Метод для динамического обновления конфигурации экземпляра класса
     public updateConfig(options: { url?: string; apiKey?: string }): void {
         if (options.url) {
             this._url = options.url;
@@ -39,6 +46,7 @@ export default class MainApi {
         }
     }
 
+    // Методы для выполнения запросов
     public getEmailCalendar(params: EmailCalendarParams): Promise<any> {
         const queryString = this._getQueryString(params);
 

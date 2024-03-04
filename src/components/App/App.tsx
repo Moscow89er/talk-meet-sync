@@ -90,12 +90,17 @@ export default function App() {
     }, [meetings, selectedDate]);
 
     const handleFetchMeetingsForAllUsers = async (apiInstance: MainApi) => {
+        // Начало выполнения и установка состояния загрузки
         setIsLoading(true);
         try {
+            // Инициализация переменных
             let currentOffset: string | undefined = undefined;
             let allUsers: User[] = [];
             let hasMoreUsers = true;
-        
+            let foundOverlappingMeetings: Meeting[] = [];
+            const startTimeGroups: Record<string, Meeting[]> = {};
+            
+            // Пагинационное извлечение данных о пользователях
             while (hasMoreUsers) {
                 const response = await fetchUsers(apiInstance, 10, currentOffset);
                 if (response.users.length > 0) {
@@ -105,15 +110,15 @@ export default function App() {
                     hasMoreUsers = false;
                 }
             }
-        
+            
+            // Параллельное извлечение данных о встречах
             const meetingsPromises = allUsers.map(user => fetchMeetings(apiInstance, user.email));
+            // Ожидаем завершения всех ассинхронных операций извлечения встреч
             const meetingsResults = await Promise.all(meetingsPromises);
+            // Результат объединяем в один массив
             const allMeetings = meetingsResults.flat();
-        
+            // Сортировка встреч
             const sortedMeetings = [...allMeetings].sort(compareMeetings);
-        
-            let foundOverlappingMeetings: Meeting[] = [];
-            const startTimeGroups: Record<string, Meeting[]> = {};
 
             // Группируем встречи по времени начала
             sortedMeetings.forEach(meeting => {
@@ -167,12 +172,14 @@ export default function App() {
         openSettingsPopup();
     };
 
+    // Автоматизируем открытие всплывающего окна в ответ на изменение выбранной даты
     useEffect(() => {
         if (selectedDate != null) {
           openMeetingsPopup();
         }
     }, [selectedDate, openMeetingsPopup]);
 
+    // Cинхронизации состояния компонента с хранилищем данных браузера
     useEffect(() => {
         // Записываем в localStorage только если значения не пустые
         if (talkUrl) localStorage.setItem("talkUrl", talkUrl);
@@ -182,6 +189,7 @@ export default function App() {
         else localStorage.removeItem("apiKey");
     }, [talkUrl, apiKey]);
 
+    // Автоматизация запросов к серверу в ответ на изменение состояния
     useEffect(() => {
         if (talkUrl && apiKey) {
             handleFetchMeetingsForAllUsers(mainApi);

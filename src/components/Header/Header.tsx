@@ -5,7 +5,6 @@ import defaultImg from '../../images/default_img.jpg';
 
 const Header: React.FC<Header> = ( { onSettingsClick } ) => {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
-
     const dropdownRef = useRef<HTMLDivElement | null>(null);
 
     const handleToggleMenuOpen = (event: React.MouseEvent) => {
