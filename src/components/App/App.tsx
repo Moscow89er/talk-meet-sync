@@ -19,9 +19,10 @@ import MainApi from "../../utils/api/MainApi";
 export default function App() {
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
-    const [numsOfLicence, setNumsOfLicense] = useState<number>(1);
+    const [numsOfLicence, setNumsOfLicense] = useState<number>(0);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [activePopup, setActivePopup] = useState(null);
+    const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
     const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState<boolean>(false);
     const [isError, setIsError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -44,13 +45,33 @@ export default function App() {
             const updatedApiInstance = new MainApi({ url: newTalkUrl });
             updatedApiInstance.updateConfig({ apiKey: newApiKey });
             setMainApi(updatedApiInstance);
-            setActivePopup(null);
-            setIsError(false);
-            setIsInfoTooltipOpen(true);
+            closePopups();
         } catch (error) {
             console.error("Ошибка при сохранении настроек:", error);
         }
     }, []);
+
+    const handleDeleteApiSettings = () => {
+        // Проверяем, есть ли значения в localStorage перед удалением
+        const isSettingsEmpty = !localStorage.getItem('talkUrl') && !localStorage.getItem('apiKey');
+
+        if (!isSettingsEmpty) {
+            localStorage.removeItem('talkUrl');
+            localStorage.removeItem('apiKey');
+            
+            setTalkUrl("");
+            setApiKey("");
+            setNumsOfLicense(null);
+        
+            // Создание нового экземпляра MainApi с начальными настройками
+            const newApiInstance = new MainApi({ url: "" });
+            setMainApi(newApiInstance);
+        
+            setActivePopup(null);
+            setIsError(false);
+            setIsInfoTooltipOpen(true);
+        }
+    };
 
     const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
     const daysWithOverlappingMeetings = useMemo(() => new Set(overlappingMeetings.map(m => m.date)), [overlappingMeetings]);
@@ -122,11 +143,13 @@ export default function App() {
     const openMeetingsPopup = useCallback(() => {
         setTitle(`Встречи на ${formatDate(selectedDate)}`);
         setActivePopup('meetings');
+        setIsPopupOpen(true);
     }, [selectedDate]);
       
     const openSettingsPopup = useCallback(() => {
         setTitle("НАСТРОЙКИ");
         setActivePopup('settings');
+        setIsPopupOpen(true);
     }, []);
 
     const closePopups = useCallback(() => {
@@ -174,17 +197,18 @@ export default function App() {
                 <Meetings overlappingMeetings={overlappingMeetings}/>
             </div>
             {activePopup === 'meetings' && (
-                <Popup title={title} onClose={closePopups}>
+                <Popup isOpen={isPopupOpen} title={title} onClose={closePopups}>
                     <MeetingsPopup date={selectedDate} meetings={filteredMeetingsForSelectedDate} />
                 </Popup>
             )}
             {activePopup === 'settings' && (
-                <Popup title={title} onClose={closePopups}>
+                <Popup isOpen={isPopupOpen} title={title} onClose={closePopups}>
                     <SettingsPopup
                         onSave={handleSaveApiSettings}
                         talkUrl={talkUrl}
                         apiKey={apiKey}
                         numsOfLicense={numsOfLicence}
+                        onDelete={handleDeleteApiSettings}
                     />
                 </Popup>
             )}
@@ -192,9 +216,8 @@ export default function App() {
                 isOpen={isInfoTooltipOpen}
                 isError={isError}
                 onClose={closePopups}
-                tooltipConfirm="Данные сохранены успешно!"
-                tooltipError="Что-то пошло не так!
-                Попробуйте ещё раз."
+                tooltipConfirm="Данные удалены успешно!"
+                tooltipError="Введены некорректные данные. Проверьте адрес пространства Толк или ключ Api и попробуйте снова."
             />
         </div>
     )

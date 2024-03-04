@@ -30,6 +30,7 @@ export interface CalendarProps {
 }
 
 export interface PopupProps {
+    isOpen: boolean;
     title: string;
     children: React.ReactNode;
     onClose: () => void;
@@ -45,6 +46,7 @@ export interface SettingsPopupProps {
     talkUrl: string;
     apiKey: string;
     numsOfLicense: number;
+    onDelete: () => void;
 }
 
 export interface InfoTooltipProps {

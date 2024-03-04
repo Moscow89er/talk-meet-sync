@@ -1,10 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PopupProps } from '../../utils/types/commonTypes';
 import "./Popup.css";
 
-const Popup: React.FC<PopupProps> = ({ title, children, onClose }) => {
+const Popup: React.FC<PopupProps> = ({ isOpen, title, children, onClose }) => {
+    useEffect(() => {
+        if (!isOpen) return;
+
+        function handleESC(event: KeyboardEvent) {
+            if (event.key === "Escape") {
+                onClose();
+            }
+        }
+        document.addEventListener("keydown", handleESC);
+
+        return () => document.removeEventListener("keydown", handleESC)
+    }, [isOpen, onClose]);
+
     return (
-        <div className="modal show popup" tabIndex={-1}>
+        <section className="modal show popup" tabIndex={-1}>
             <div className="modal-dialog">
                 <div className="modal-content">
                     <div className="modal-header">
@@ -16,7 +29,7 @@ const Popup: React.FC<PopupProps> = ({ title, children, onClose }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };
 
