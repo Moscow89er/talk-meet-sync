@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import "./Header.css";
 import { Header } from "../../utils/types/commonTypes";
+import defaultImg from '../../images/default_img.jpg';
 
 const Header: React.FC<Header> = ( { onSettingsClick } ) => {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -43,7 +44,7 @@ const Header: React.FC<Header> = ( { onSettingsClick } ) => {
                         aria-haspopup="true"
                     >
                         <img
-                            src="https://3.downloader.disk.yandex.ru/preview/f643e89c556b5f4a6224a70ee36c117fa038c670ea66c513e1200eb3c08eeff7/inf/Hw51y9e4-JVVfV06s2WWdsC_Xjcpo7SbNrxVa70KzbD5DDRi_5kjUvp_3y4F1zClDgXagBvBMcOLHwGD93QTZg%3D%3D?uid=250429910&filename=default_img.jpg&disposition=inline&hash=&limit=0&content_type=image%2Fpng&owner_uid=250429910&tknv=v2&size=1921x964"
+                            src={defaultImg}
                             alt="My image"
                             width="32"
                             height="32"
