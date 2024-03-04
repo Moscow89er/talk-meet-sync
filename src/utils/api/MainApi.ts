@@ -17,7 +17,7 @@ export default class MainApi {
         return Object.keys(params)
             .filter(key => params[key] !== undefined)
             .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-            .join('&');
+            .join("&");
     }
 
     private _checkResponse(response: Response) {
@@ -43,7 +43,7 @@ export default class MainApi {
         const queryString = this._getQueryString(params);
 
         return fetch(`${this._url}emailCalendar/${params.email}?${queryString}`, {
-            method: 'GET',
+            method: "GET",
             headers: this._headers,
         })
             .then(this._checkResponse);
@@ -52,7 +52,7 @@ export default class MainApi {
     public getUsers(params: UsersParams): Promise<any> {
         const queryString = this._getQueryString(params);
         return fetch(`${this._url}users/scan?${queryString}`, {
-            method: 'GET',
+            method: "GET",
             headers: this._headers,
         })
             .then(this._checkResponse);

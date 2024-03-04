@@ -4,7 +4,7 @@ import "./App.css";
 import Header from "../Header/Header";
 import Calendar from "../Calendar/Calendar";
 import Meetings from "../Meetings/Meetings";
-import Popup from "../Popup/Popup";
+import ParentPopup from "../ParentPopup/ParentPopup";
 import MeetingsPopup from "../MeetingsPopup/MeetingsPopup";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
@@ -19,7 +19,7 @@ import MainApi from "../../utils/api/MainApi";
 export default function App() {
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
-    const [numsOfLicence, setNumsOfLicense] = useState<number>(0);
+    const [numsOfLicence, setNumsOfLicense] = useState<number>(1);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [activePopup, setActivePopup] = useState(null);
     const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
@@ -35,8 +35,8 @@ export default function App() {
 
     const handleSaveApiSettings = useCallback(async (newTalkUrl: string, newApiKey: string, newNumsOfLicense: number) => {
         try {
-            localStorage.setItem('talkUrl', newTalkUrl);
-            localStorage.setItem('apiKey', newApiKey);
+            localStorage.setItem("talkUrl", newTalkUrl);
+            localStorage.setItem("apiKey", newApiKey);
     
             setTalkUrl(newTalkUrl);
             setApiKey(newApiKey);
@@ -53,19 +53,22 @@ export default function App() {
 
     const handleDeleteApiSettings = () => {
         // Проверяем, есть ли значения в localStorage перед удалением
-        const isSettingsEmpty = !localStorage.getItem('talkUrl') && !localStorage.getItem('apiKey');
+        const isSettingsEmpty = !localStorage.getItem("talkUrl") && !localStorage.getItem("apiKey");
 
         if (!isSettingsEmpty) {
-            localStorage.removeItem('talkUrl');
-            localStorage.removeItem('apiKey');
+            localStorage.removeItem("talkUrl");
+            localStorage.removeItem("apiKey");
             
             setTalkUrl("");
             setApiKey("");
-            setNumsOfLicense(null);
+            setNumsOfLicense(0);
         
             // Создание нового экземпляра MainApi с начальными настройками
             const newApiInstance = new MainApi({ url: "" });
             setMainApi(newApiInstance);
+
+            setMeetings([]); 
+            setOverlappingMeetings([]);
         
             setActivePopup(null);
             setIsError(false);
@@ -78,9 +81,9 @@ export default function App() {
 
     const filteredMeetingsForSelectedDate = useMemo((): Meeting[] => {
         // Убедимся, что selectedDate является строкой для корректного сравнения
-        if (typeof selectedDate === 'string') {
+        if (typeof selectedDate === "string") {
             return meetings.filter(meeting => 
-                meeting.date === formatDate(selectedDate, { year: 'numeric', month: '2-digit', day: '2-digit' })
+                meeting.date === formatDate(selectedDate, { year: "numeric", month: "2-digit", day: "2-digit" })
             );
         }
         return []; // Если selectedDate не строка, возвращаем пустой массив
@@ -110,7 +113,7 @@ export default function App() {
             const sortedMeetings = [...allMeetings].sort(compareMeetings);
         
             let foundOverlappingMeetings: Meeting[] = [];
-            let startTimeGroups: Record<string, Meeting[]> = {};
+            const startTimeGroups: Record<string, Meeting[]> = {};
 
             // Группируем встречи по времени начала
             sortedMeetings.forEach(meeting => {
@@ -133,6 +136,8 @@ export default function App() {
             setOverlappingMeetings(foundOverlappingMeetings);
         } catch(error) {
             console.error("Ошибка при получении данных о встречах:", error);
+            setMeetings([]); 
+            setOverlappingMeetings([]);
             setIsError(true);
             setIsInfoTooltipOpen(true);
         } finally {
@@ -142,13 +147,13 @@ export default function App() {
     
     const openMeetingsPopup = useCallback(() => {
         setTitle(`Встречи на ${formatDate(selectedDate)}`);
-        setActivePopup('meetings');
+        setActivePopup("meetings");
         setIsPopupOpen(true);
     }, [selectedDate]);
       
     const openSettingsPopup = useCallback(() => {
         setTitle("НАСТРОЙКИ");
-        setActivePopup('settings');
+        setActivePopup("settings");
         setIsPopupOpen(true);
     }, []);
 
@@ -169,13 +174,13 @@ export default function App() {
     }, [selectedDate, openMeetingsPopup]);
 
     useEffect(() => {
-        // Эффект для синхронизации с localStorage
-        localStorage.setItem('talkUrl', talkUrl);
-        localStorage.setItem('apiKey', apiKey);
-
-        // Обновление экземпляра API, если необходимо
-        mainApi.updateConfig({ url: talkUrl });
-    }, [talkUrl, apiKey, mainApi]);
+        // Записываем в localStorage только если значения не пустые
+        if (talkUrl) localStorage.setItem("talkUrl", talkUrl);
+        else localStorage.removeItem("talkUrl");
+        
+        if (apiKey) localStorage.setItem("apiKey", apiKey);
+        else localStorage.removeItem("apiKey");
+    }, [talkUrl, apiKey]);
 
     useEffect(() => {
         if (talkUrl && apiKey) {
@@ -196,13 +201,13 @@ export default function App() {
                 />
                 <Meetings overlappingMeetings={overlappingMeetings}/>
             </div>
-            {activePopup === 'meetings' && (
-                <Popup isOpen={isPopupOpen} title={title} onClose={closePopups}>
+            {activePopup === "meetings" && (
+                <ParentPopup isOpen={isPopupOpen} title={title} onClose={closePopups}>
                     <MeetingsPopup date={selectedDate} meetings={filteredMeetingsForSelectedDate} />
-                </Popup>
+                </ParentPopup>
             )}
-            {activePopup === 'settings' && (
-                <Popup isOpen={isPopupOpen} title={title} onClose={closePopups}>
+            {activePopup === "settings" && (
+                <ParentPopup isOpen={isPopupOpen} title={title} onClose={closePopups}>
                     <SettingsPopup
                         onSave={handleSaveApiSettings}
                         talkUrl={talkUrl}
@@ -210,7 +215,7 @@ export default function App() {
                         numsOfLicense={numsOfLicence}
                         onDelete={handleDeleteApiSettings}
                     />
-                </Popup>
+                </ParentPopup>
             )}
             <InfoTooltip
                 isOpen={isInfoTooltipOpen}

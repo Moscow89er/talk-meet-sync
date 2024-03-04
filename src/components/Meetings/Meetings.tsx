@@ -19,7 +19,7 @@ const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings }) => {
         </div>
     ))
 
-    const headerText = overlappingMeetings.length !== 0 ? 'Пересечение встреч' : 'Пересечений между встречами нет';
+    const headerText = overlappingMeetings.length !== 0 ? "Пересечение встреч" : "Пересечений между встречами нет";
 
     return (
         <section className="container">

@@ -1,5 +1,5 @@
-import React, { FormEvent, useState } from 'react';
-import { SettingsPopupProps } from '../../utils/types/commonTypes';
+import React, { FormEvent, useState } from "react";
+import { SettingsPopupProps } from "../../utils/types/commonTypes";
 
 const SettingsPopup: React.FC<SettingsPopupProps> = ({
   onSave,

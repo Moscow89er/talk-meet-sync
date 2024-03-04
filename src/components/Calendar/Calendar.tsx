@@ -98,8 +98,8 @@ const Calendar: React.FC<CalendarProps> = ({
     if (!isCurrentMonthDay) return; // Игнорируем клики по дням других месяцев
   
     // Форматируем месяц и день, добавляя ведущий ноль при необходимости
-    const month = (displayDate.getMonth() + 1).toString().padStart(2, '0');
-    const formattedDay = day.toString().padStart(2, '0');
+    const month = (displayDate.getMonth() + 1).toString().padStart(2, "0");
+    const formattedDay = day.toString().padStart(2, "0");
     const formattedDate = `${displayDate.getFullYear()}-${month}-${formattedDay}`;
   
     onDateSelect(formattedDate);

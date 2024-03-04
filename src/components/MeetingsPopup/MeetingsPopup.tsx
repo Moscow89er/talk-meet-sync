@@ -1,7 +1,7 @@
 import React from "react";
 import { MeetingsPopupProps } from "../../utils/types/commonTypes";
 
-const MeetingsPopup: React.FC<MeetingsPopupProps> = ({ date, meetings }) => {
+const MeetingsPopup: React.FC<MeetingsPopupProps> = ({ meetings }) => {
     return (
             <>
                 {meetings.length > 0 ? (

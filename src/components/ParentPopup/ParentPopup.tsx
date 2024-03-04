@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { PopupProps } from '../../utils/types/commonTypes';
-import "./Popup.css";
+import React, { useEffect } from "react";
+import { PopupProps } from "../../utils/types/commonTypes";
+import "./ParentPopup.css";
 
 const Popup: React.FC<PopupProps> = ({ isOpen, title, children, onClose }) => {
     useEffect(() => {
