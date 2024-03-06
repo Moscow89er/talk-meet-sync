@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useCallback } from "react";
+import CalendarDay from "../CalendarDay/CalendarDay";
 import { CalendarProps } from "../../utils/types/commonTypes";
-import { isDateOverlapping, isDateWithMeeting } from "../../utils/helpers/compareMeetings";
 import { monthNames } from "../../utils/constants/constants";
+import { getPreviousDays, getCurrentDays, getNextDays, getWeeks } from "../../utils/helpers/calendarHelpers";
 import "./Calendar.css";
 
 const Calendar: React.FC<CalendarProps> = ({ 
@@ -21,32 +22,16 @@ const Calendar: React.FC<CalendarProps> = ({
     const firstDayOfMonth = new Date(year, month, 1).getDay();
     const numberOfDaysInMonth = new Date(year, month + 1, 0).getDate();
     const lastDayOfLastMonth = new Date(year, month, 0).getDate();
-
     // Скорректируем день недели для воскресенья (0 в JS) к европейскому формату (7)
     const dayOfWeek = firstDayOfMonth === 0 ? 7 : firstDayOfMonth;
 
-    // Заполняем предыдущие дни
-    const calendarDays: number[] = [];
-    for (let i = dayOfWeek - 1; i > 0; i--) {
-      calendarDays.push(lastDayOfLastMonth - i + 1);
-    }
+    const previousDays = getPreviousDays(dayOfWeek, lastDayOfLastMonth);
+    const currentDays = getCurrentDays(numberOfDaysInMonth);
+    const calendarDays = [...previousDays, ...currentDays];
+    const nextDays = getNextDays(calendarDays, dayOfWeek, numberOfDaysInMonth);
 
-    // Заполнем текущие дни месяца
-    for (let day = 1; day <= numberOfDaysInMonth; day++) {
-      calendarDays.push(day);
-    }
-
-    // Заполняем следующие дни
-    let nextMonthDay = 1;
-    while (calendarDays.length % 7 !== 0) {
-      calendarDays.push(nextMonthDay++);
-    }
-
-    // Разделяем дни на недели
-    const weeks: (number | null)[][] = [];
-    for (let i = 0; i < calendarDays.length; i += 7) {
-      weeks.push(calendarDays.slice(i, i + 7));
-    }
+    const allDays = [...calendarDays, ...nextDays];
+    const weeks = getWeeks(allDays);
 
     // Подсветим текущую дату
     const isCurrentMonth = currentDate.getMonth() === displayDate.getMonth() &&
@@ -56,29 +41,23 @@ const Calendar: React.FC<CalendarProps> = ({
     return weeks.map((week: number[], index: number) => (
       <tr key={index}>
         {week.map((day: number, dayIndex: number) => {
-          const dayPosition = index * 7 + dayIndex; // Позиция дня в общем массиве дней
-          const isPrevMonth = dayPosition < dayOfWeek - 1; // Если позиция дня меньше, чем смещение первого дня месяца
-          const isNextMonth = dayPosition >= (dayOfWeek - 1 + numberOfDaysInMonth); // Если позиция дня больше или равна смещению плюс количество дней в месяце
+          const dayPosition = index * 7 + dayIndex;
+          const isPrevMonth = dayPosition < dayOfWeek - 1;
+          const isNextMonth = dayPosition >= (dayOfWeek - 1 + numberOfDaysInMonth);
           const isCurrentDay = isCurrentMonth && day === currentDay && !isPrevMonth && !isNextMonth;
-
-          let className = "calendar__day";
-          if (isCurrentDay) className += " calendar__day--current";
-          if (isPrevMonth) className += " calendar__day--prev";
-          if (isNextMonth) className += " calendar__day--next";
-
-          if (isDateOverlapping(day, displayDate, overlappingMeetings, !isPrevMonth && !isNextMonth)) {
-            className += " calendar__day--overlapping";
-          } else if (isDateWithMeeting(day, displayDate, meetings, !isPrevMonth && !isNextMonth)) {
-            className += " calendar__day--meeting";
-          }
-    
+  
           return (
-            <td
+            <CalendarDay
               key={dayIndex}
-              className={className}
-              onClick={() => handleDayClick(day, !isPrevMonth && !isNextMonth)}>
-                {day}
-            </td>
+              day={day}
+              isPrevMonth={isPrevMonth}
+              isNextMonth={isNextMonth}
+              isCurrentDay={isCurrentDay}
+              onDayClick={() => handleDayClick(day, !isPrevMonth && !isNextMonth)}
+              displayDate={displayDate}
+              overlappingMeetings={overlappingMeetings}
+              meetings={meetings}
+            />
           );
         })}
       </tr>

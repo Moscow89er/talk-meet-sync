@@ -66,4 +66,15 @@ export interface FormFieldProps {
     value: string | number;
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
-}  
+}
+
+export interface CalendarDayProps {
+    day: number;
+    isPrevMonth: boolean;
+    isNextMonth: boolean;
+    isCurrentDay: boolean;
+    onDayClick: () => void;
+    displayDate: Date;
+    overlappingMeetings: string[];
+    meetings: string[];
+}
