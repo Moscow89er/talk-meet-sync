@@ -13,6 +13,8 @@ export interface Header {
 
 export interface MeetingsProps {
     overlappingMeetings: Meeting[];
+    hasSettings: Boolean;
+    isError: Boolean;
 }
 
 export interface User {
@@ -56,3 +58,12 @@ export interface InfoTooltipProps {
     tooltipConfirm: string;
     tooltipError: string;
 }
+
+export interface FormFieldProps {
+    id: string;
+    label: string;
+    type: string;
+    value: string | number;
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    placeholder?: string;
+}  

@@ -1,7 +1,7 @@
 import React from "react";
 import { MeetingsProps } from "../../utils/types/commonTypes";
 
-const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings }) => {
+const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings, hasSettings, isError }) => {
     // Ограничиваем список до последних 6 встреч
     const slicedMeetings = overlappingMeetings.slice(-6);
 
@@ -19,7 +19,15 @@ const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings }) => {
         </div>
     ))
 
-    const headerText = overlappingMeetings.length !== 0 ? "Пересечение встреч" : "Пересечений между встречами нет";
+    let headerText: string;
+
+    if (isError) {
+        headerText = "В настройках указаны не верные данные, проверьте их и введите снова";
+    } else if (!hasSettings) {
+        headerText = "Введите ваши данные в настройки, чтобы настроить работу сервиса";
+    } else {
+        headerText = overlappingMeetings.length !== 0 ? "Пересечение встреч" : "Пересечений между встречами нет";
+    }
 
     return (
         <section className="container">

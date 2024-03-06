@@ -1,5 +1,6 @@
 import React, { FormEvent, useState } from "react";
 import { SettingsPopupProps } from "../../utils/types/commonTypes";
+import FormField from "../FormField/FormField";
 
 const SettingsPopup: React.FC<SettingsPopupProps> = ({
   onSave,
@@ -9,14 +10,22 @@ const SettingsPopup: React.FC<SettingsPopupProps> = ({
   onDelete
 }) => {
   // Создаем локальные состояния для временного хранения введенных данных
-  const [tempTalkUrl, setTempTalkUrl] = useState(initialTalkUrl);
-  const [tempApiKey, setTempApiKey] = useState(initialApiKey);
-  const [tempNumsOfLicense, setTempNumsOfLicense] = useState(initialNumsOfLicense);
+  const [tempTalkUrl, setTempTalkUrl] = useState<string>(initialTalkUrl);
+  const [tempApiKey, setTempApiKey] = useState<string>(initialApiKey);
+  const [tempNumsOfLicense, setTempNumsOfLicense] = useState<number | string>(initialNumsOfLicense);
 
   // Обработчик нажатия на кнопку "Сохранить", который вызывает onSave с текущими значениями локальных состояний
   const handleSave = (event: FormEvent) => {
     event.preventDefault(); // Предотвращаем стандартное поведение формы
-    onSave(tempTalkUrl, tempApiKey, tempNumsOfLicense);
+
+    // Автоматическая корректировка URL
+    let correctedTalkUrl = tempTalkUrl;
+    if (!correctedTalkUrl.endsWith('/')) {
+      correctedTalkUrl += '/';
+    }
+
+    const numsOfLicenseAsNumber = parseInt(tempNumsOfLicense.toString(), 10);
+    onSave(correctedTalkUrl, tempApiKey, isNaN(numsOfLicenseAsNumber) ? 0 : numsOfLicenseAsNumber);
   };
 
   const handleDelete = (event: FormEvent) => {
@@ -28,39 +37,30 @@ const SettingsPopup: React.FC<SettingsPopupProps> = ({
     <>
       <div className="modal-body">
         <form onSubmit={handleSave}>
-          <div className="mb-3 fw-bold">
-            <label htmlFor="talkUrl" className="form-label">Адрес пространства Толк</label>
-            <input
-              type="url"
-              className="form-control"
-              id="talkUrl"
-              value={tempTalkUrl}
-              onChange={(e) => setTempTalkUrl(e.target.value)}
-              placeholder="Введите адрес пространства Толк"
-            />
-          </div>
-          <div className="mb-3 fw-bold">
-            <label htmlFor="apiKey" className="form-label">Ключ API</label>
-            <input
-              type="text"
-              className="form-control"
-              id="apiKey"
-              value={tempApiKey}
-              onChange={(e) => setTempApiKey(e.target.value)}
-              placeholder="Введите ключ API"
-            />
-          </div>
-          <div className="mb-3 fw-bold">
-            <label htmlFor="numsOfLicense" className="form-label">Количество лицензий Толк</label>
-            <input
-              type="text"
-              className="form-control"
-              id="numsOfLicense"
-              value={tempNumsOfLicense}
-              onChange={(e) => setTempNumsOfLicense(Number(e.target.value))}
-              placeholder="Введите количество приобретенных лицензий Толк"
-            />
-          </div>
+        <FormField
+            id="talkUrl"
+            label="Адрес пространства Толк"
+            type="url"
+            value={tempTalkUrl}
+            onChange={(e) => setTempTalkUrl(e.target.value)}
+            placeholder="Введите адрес пространства Толк"
+          />
+          <FormField
+            id="apiKey"
+            label="Ключ API"
+            type="text"
+            value={tempApiKey}
+            onChange={(e) => setTempApiKey(e.target.value)}
+            placeholder="Введите ключ API"
+          />
+          <FormField
+            id="numsOfLicense"
+            label="Количество лицензий Толк"
+            type="text"
+            value={tempNumsOfLicense}
+            onChange={(e) => setTempNumsOfLicense(e.target.value)}
+            placeholder="Введите количество приобретенных лицензий Толк"
+          />
           <div className="modal-footer d-flex justify-content-between">
             <button
               type="button"

@@ -89,65 +89,77 @@ export default function App() {
         return []; // Если selectedDate не строка, возвращаем пустой массив
     }, [meetings, selectedDate]);
 
+    // Функция для извлечения всех пользователей
+    const fetchAllUsers = async (apiInstance: MainApi) => {
+        // Инициализация переменных
+        let currentOffset: string | undefined = undefined;
+        let allUsers: User[] = [];
+        let hasMoreUsers = true;
+        
+        // Пагинационное извлечение данных о пользователях
+        while (hasMoreUsers) {
+            const response = await fetchUsers(apiInstance, 10, currentOffset);
+            if (response.users.length > 0) {
+                allUsers = [...allUsers, ...response.users];
+                currentOffset = response.offset;
+            } else {
+                hasMoreUsers = false;
+            }
+        }
+      
+        return allUsers;
+    };
+
+    // Функция для извлечения всех встреч
+    const fetchAllMeetings = async (apiInstance: MainApi, users: User[]) => {
+        // Параллельное извлечение данных о встречах
+        const meetingsPromises = users.map(user => fetchMeetings(apiInstance, user.email));
+        // Ожидаем завершения всех ассинхронных операций извлечения встреч
+        const meetingsResults = await Promise.all(meetingsPromises);
+        // Результат объединяем в один массив
+        return meetingsResults.flat();
+    };
+
+    // Функция для определения пересекающихся встреч
+    const findOverlappingMeetings = (meetings: Meeting[]) => {
+        let foundOverlappingMeetings: Meeting[] = [];
+
+        // Предполагается, что meetings уже отсортированы
+        meetings.forEach((meeting, index, self) => {
+            if (index < self.length - 1) {
+                const endTime = parseDate(meeting.date, meeting.endTime).getTime();
+                const nextMeetingStartTime = parseDate(self[index + 1].date, self[index + 1].startTime).getTime();
+                if (endTime > nextMeetingStartTime) {
+                    // Если время окончания текущей встречи больше, чем время начала следующей, они пересекаются
+                    foundOverlappingMeetings.push(meeting, self[index + 1]);
+                }
+            }
+        });
+        
+        // Удаление дубликатов пересекающихся встреч
+        return Array.from(new Set(foundOverlappingMeetings));
+    }
+
     const handleFetchMeetingsForAllUsers = async (apiInstance: MainApi) => {
         // Начало выполнения и установка состояния загрузки
         setIsLoading(true);
         try {
-            // Инициализация переменных
-            let currentOffset: string | undefined = undefined;
-            let allUsers: User[] = [];
-            let hasMoreUsers = true;
-            let foundOverlappingMeetings: Meeting[] = [];
-            const startTimeGroups: Record<string, Meeting[]> = {};
-            
-            // Пагинационное извлечение данных о пользователях
-            while (hasMoreUsers) {
-                const response = await fetchUsers(apiInstance, 10, currentOffset);
-                if (response.users.length > 0) {
-                    allUsers = [...allUsers, ...response.users];
-                    currentOffset = response.offset;
-                } else {
-                    hasMoreUsers = false;
-                }
-            }
-            
-            // Параллельное извлечение данных о встречах
-            const meetingsPromises = allUsers.map(user => fetchMeetings(apiInstance, user.email));
-            // Ожидаем завершения всех ассинхронных операций извлечения встреч
-            const meetingsResults = await Promise.all(meetingsPromises);
-            // Результат объединяем в один массив
-            const allMeetings = meetingsResults.flat();
-            // Сортировка встреч
+            const allUsers = await fetchAllUsers(apiInstance);
+            const allMeetings = await fetchAllMeetings(apiInstance, allUsers);
             const sortedMeetings = [...allMeetings].sort(compareMeetings);
-
-            // Группируем встречи по времени начала
-            sortedMeetings.forEach(meeting => {
-                const startTime = parseDate(meeting.date, meeting.startTime).getTime().toString();
-                if (!startTimeGroups[startTime]) {
-                    startTimeGroups[startTime] = [];
-                }
-                startTimeGroups[startTime].push(meeting);
-            });
-
-            // Сверяем каждую группу с numsOfLicence
-            Object.keys(startTimeGroups).forEach(time => {
-                if (startTimeGroups[time].length > numsOfLicence) {
-                    // Если количество встреч превышает numsOfLicence, считаем все как пересекающиеся
-                    foundOverlappingMeetings = foundOverlappingMeetings.concat(startTimeGroups[time]);
-                }
-            });
+            const foundOverlappingMeetings = findOverlappingMeetings(sortedMeetings);
         
+            setIsError(false);
             setMeetings(sortedMeetings);
             setOverlappingMeetings(foundOverlappingMeetings);
-        } catch(error) {
+          } catch (error) {
             console.error("Ошибка при получении данных о встречах:", error);
             setMeetings([]); 
             setOverlappingMeetings([]);
             setIsError(true);
-            setIsInfoTooltipOpen(true);
-        } finally {
+          } finally {
             setIsLoading(false);
-        }
+          }
     };
     
     const openMeetingsPopup = useCallback(() => {
@@ -207,10 +219,14 @@ export default function App() {
                     overlappingMeetings={Array.from(daysWithOverlappingMeetings)}
                     meetings={Array.from(daysWithMeetings)}
                 />
-                <Meetings overlappingMeetings={overlappingMeetings}/>
+                <Meetings
+                    overlappingMeetings={overlappingMeetings}
+                    hasSettings={Boolean(talkUrl) && Boolean(apiKey)}
+                    isError={isError}
+                />
             </div>
             {activePopup === "meetings" && (
-                <ParentPopup isOpen={isPopupOpen} title={title} onClose={closePopups}>
+                <ParentPopup isOpen={isPopupOpen} title={title} onClose={closePopups} >
                     <MeetingsPopup date={selectedDate} meetings={filteredMeetingsForSelectedDate} />
                 </ParentPopup>
             )}

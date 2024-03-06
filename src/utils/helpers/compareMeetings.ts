@@ -9,9 +9,10 @@ export const parseDate = (dateString: string, timeString: string) => {
 }
 
 // Функция для сравнения двух встреч по времени начала
-export const compareMeetings = (meetingFirst: Meeting, meetingSecond: Meeting) => {
+export const compareMeetings = (meetingFirst: Meeting, meetingSecond: Meeting): number => {
     const startTimeFirst = parseDate(meetingFirst.date, meetingFirst.startTime).getTime();
     const startTimeSecond = parseDate(meetingSecond.date, meetingSecond.startTime).getTime();
+    
     return startTimeFirst - startTimeSecond;
 };
 
