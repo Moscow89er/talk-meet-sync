@@ -12,8 +12,8 @@ import Preloader from "../Preloader/Preloader";
 import { User, Meeting } from "../../utils/types/commonTypes";
 import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
-import { compareMeetings } from "../../utils/helpers/compareMeetings";
-import { parseDate } from "../../utils/helpers/compareMeetings";
+import { sortMeetingsByStartTime } from "../../utils/helpers/meetingHelppers";
+import { parseDate } from "../../utils/helpers/meetingHelppers";
 import MainApi from "../../utils/api/MainApi";
 
 export default function App() {
@@ -82,9 +82,12 @@ export default function App() {
     const filteredMeetingsForSelectedDate = useMemo((): Meeting[] => {
         // Убедимся, что selectedDate является строкой для корректного сравнения
         if (typeof selectedDate === "string") {
-            return meetings.filter(meeting => 
+            const allMeetingsForDate =  meetings.filter(meeting => 
                 meeting.date === formatDate(selectedDate, { year: "numeric", month: "2-digit", day: "2-digit" })
             );
+            
+            // Сортируем все встречи по времени начала
+            return allMeetingsForDate.sort((a, b) =>  parseDate(a.date, a.startTime).getTime() - parseDate(b.date, b.startTime).getTime());
         }
         return []; // Если selectedDate не строка, возвращаем пустой массив
     }, [meetings, selectedDate]);
@@ -120,38 +123,54 @@ export default function App() {
         return meetingsResults.flat();
     };
 
-    // Функция для определения пересекающихся встреч
-    const findOverlappingMeetings = (meetings: Meeting[]) => {
-        let foundOverlappingMeetings: Meeting[] = [];
-
-        // Предполагается, что meetings уже отсортированы
-        meetings.forEach((meeting, index, self) => {
-            if (index < self.length - 1) {
-                const endTime = parseDate(meeting.date, meeting.endTime).getTime();
-                const nextMeetingStartTime = parseDate(self[index + 1].date, self[index + 1].startTime).getTime();
-                if (endTime > nextMeetingStartTime) {
-                    // Если время окончания текущей встречи больше, чем время начала следующей, они пересекаются
-                    foundOverlappingMeetings.push(meeting, self[index + 1]);
+    // Функция для создания временной шкалы всех событий начала и окончания встреч
+    const createTimeLine = (meetings: Meeting[]): { time: number; type: "start" | "end"; meeting: Meeting }[] => {
+        return meetings.flatMap(meeting => [
+            { time: parseDate(meeting.date, meeting.startTime).getTime(), type: "start" as "start", meeting },
+            { time: parseDate(meeting.date, meeting.endTime).getTime(), type: "end" as "end", meeting },
+        ]).sort((a, b) => a.time - b.time || (a.type === "start" ? -1 : 1));
+    };
+  
+    // Функция для определения всех пересекающихся встреч с учетом количества лицензий
+    const findOverlappingMeetings = (meetings: Meeting[], numsOfLicence: number): Meeting[] => {
+        const timeline = createTimeLine(meetings);
+        let currentMeetings = 0;
+        let activeMeetings = new Set<Meeting>(); // Для отслеживания активных встреч
+        let overlappingMeetings = new Set<Meeting>();
+      
+        timeline.forEach(event => {
+            if (event.type === "start") {
+                activeMeetings.add(event.meeting);
+                currentMeetings++;
+                if (currentMeetings > numsOfLicence) {
+                    // Добавляем все активные встречи, так как они теперь пересекаются
+                    activeMeetings.forEach(meeting => overlappingMeetings.add(meeting));
+                }
+            } else {
+                activeMeetings.delete(event.meeting);
+                currentMeetings--;
+                // Если количество активных встреч все еще пересекается, нужно обновить список пересекающихся встреч
+                if (currentMeetings >= numsOfLicence) {
+                    activeMeetings.forEach(meeting => overlappingMeetings.add(meeting));
                 }
             }
         });
-        
-        // Удаление дубликатов пересекающихся встреч
-        return Array.from(new Set(foundOverlappingMeetings));
-    }
-
+      
+        return Array.from(overlappingMeetings);
+    };
+      
     const handleFetchMeetingsForAllUsers = async (apiInstance: MainApi) => {
         // Начало выполнения и установка состояния загрузки
         setIsLoading(true);
         try {
             const allUsers = await fetchAllUsers(apiInstance);
             const allMeetings = await fetchAllMeetings(apiInstance, allUsers);
-            const sortedMeetings = [...allMeetings].sort(compareMeetings);
-            const foundOverlappingMeetings = findOverlappingMeetings(sortedMeetings);
+            const sortedMeetings = [...allMeetings].sort(sortMeetingsByStartTime);
+            const overlappingMeetings = findOverlappingMeetings(sortedMeetings, numsOfLicence);
         
-            setIsError(false);
             setMeetings(sortedMeetings);
-            setOverlappingMeetings(foundOverlappingMeetings);
+            setOverlappingMeetings(overlappingMeetings);
+            setIsError(false);
           } catch (error) {
             console.error("Ошибка при получении данных о встречах:", error);
             setMeetings([]); 
@@ -220,7 +239,7 @@ export default function App() {
                     meetings={Array.from(daysWithMeetings)}
                 />
                 <Meetings
-                    overlappingMeetings={overlappingMeetings}
+                    overlappingMeetings={overlappingMeetings.sort((a, b) =>  parseDate(a.date, a.startTime).getTime() - parseDate(b.date, b.startTime).getTime())}
                     hasSettings={Boolean(talkUrl) && Boolean(apiKey)}
                     isError={isError}
                 />

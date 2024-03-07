@@ -2,8 +2,8 @@ import React from "react";
 import { MeetingsProps } from "../../utils/types/commonTypes";
 
 const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings, hasSettings, isError }) => {
-    // Ограничиваем список до последних 6 встреч
-    const slicedMeetings = overlappingMeetings.slice(-6);
+    // Ограничиваем список до последних 9 встреч
+    const slicedMeetings = overlappingMeetings.slice(-9);
 
     const meetingList = slicedMeetings.map(meeting => (
         <div key={meeting.id} className="col-12 col-md-4 mb-3">

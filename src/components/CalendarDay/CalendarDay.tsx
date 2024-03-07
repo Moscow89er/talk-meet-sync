@@ -1,5 +1,5 @@
 import React from "react";
-import { isDateOverlapping, isDateWithMeeting } from "../../utils/helpers/compareMeetings";
+import { isDateOverlapping, isDateWithMeeting } from "../../utils/helpers/meetingHelppers";
 import { CalendarDayProps } from "../../utils/types/commonTypes";
 
 const CalendarDay:React.FC<CalendarDayProps> = ({
