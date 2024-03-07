@@ -17,7 +17,7 @@ const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings, hasSettings, i
                 </div>
             </div>
         </div>
-    ))
+    ));
 
     let headerText: string;
 

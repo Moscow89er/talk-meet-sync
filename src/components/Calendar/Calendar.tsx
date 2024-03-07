@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
-import CalendarDay from "../CalendarDay/CalendarDay";
+import CalendarGrid from "../CalendarGrid/CalendarGrid";
 import { CalendarProps } from "../../utils/types/commonTypes";
 import { monthNames } from "../../utils/constants/constants";
-import { getPreviousDays, getCurrentDays, getNextDays, getWeeks } from "../../utils/helpers/calendarHelpers";
 import "./Calendar.css";
 
 const Calendar: React.FC<CalendarProps> = ({ 
@@ -13,58 +12,6 @@ const Calendar: React.FC<CalendarProps> = ({
  }) => {
   const [displayDate, setDisplayDate] = useState(new Date());
   const currentDate = new Date();
-
-  // Функция генерирующая календарь
-  const generateCalendar = (): JSX.Element[] => {
-    // Определяем базовые переменные
-    const year = displayDate.getFullYear();
-    const month = displayDate.getMonth();
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
-    const numberOfDaysInMonth = new Date(year, month + 1, 0).getDate();
-    const lastDayOfLastMonth = new Date(year, month, 0).getDate();
-    // Скорректируем день недели для воскресенья (0 в JS) к европейскому формату (7)
-    const dayOfWeek = firstDayOfMonth === 0 ? 7 : firstDayOfMonth;
-
-    const previousDays = getPreviousDays(dayOfWeek, lastDayOfLastMonth);
-    const currentDays = getCurrentDays(numberOfDaysInMonth);
-    const calendarDays = [...previousDays, ...currentDays];
-    const nextDays = getNextDays(calendarDays, dayOfWeek, numberOfDaysInMonth);
-
-    const allDays = [...calendarDays, ...nextDays];
-    const weeks = getWeeks(allDays);
-
-    // Подсветим текущую дату
-    const isCurrentMonth = currentDate.getMonth() === displayDate.getMonth() &&
-    currentDate.getFullYear() === displayDate.getFullYear();
-    const currentDay = currentDate.getDate();
-
-    return weeks.map((week: number[], index: number) => (
-      <tr key={index}>
-        {week.map((day: number, dayIndex: number) => {
-          const dayPosition = index * 7 + dayIndex;
-          const isPrevMonth = dayPosition < dayOfWeek - 1;
-          const isNextMonth = dayPosition >= (dayOfWeek - 1 + numberOfDaysInMonth);
-          const isCurrentDay = isCurrentMonth && day === currentDay && !isPrevMonth && !isNextMonth;
-  
-          return (
-            <CalendarDay
-              key={dayIndex}
-              day={day}
-              isPrevMonth={isPrevMonth}
-              isNextMonth={isNextMonth}
-              isCurrentDay={isCurrentDay}
-              onDayClick={() => handleDayClick(day, !isPrevMonth && !isNextMonth)}
-              displayDate={displayDate}
-              overlappingMeetings={overlappingMeetings}
-              meetings={meetings}
-            />
-          );
-        })}
-      </tr>
-    ));
-  };
-
-  const calendar = useMemo(() => generateCalendar(), [displayDate, overlappingMeetings, meetings]);
 
   const handlePrevMonth = useCallback(() => {
     setDisplayDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1));
@@ -107,9 +54,13 @@ const Calendar: React.FC<CalendarProps> = ({
                             <th>Вс</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {calendar}
-                    </tbody>
+                    <CalendarGrid
+                      displayDate={displayDate}
+                      currentDate={currentDate}
+                      overlappingMeetings={overlappingMeetings}
+                      meetings={meetings}
+                      handleDayClick={handleDayClick}
+                    />
                 </table>
             </div>
         </div>

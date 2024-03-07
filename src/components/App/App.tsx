@@ -245,8 +245,14 @@ export default function App() {
                 />
             </div>
             {activePopup === "meetings" && (
-                <ParentPopup isOpen={isPopupOpen} title={title} onClose={closePopups} >
-                    <MeetingsPopup date={selectedDate} meetings={filteredMeetingsForSelectedDate} />
+                <ParentPopup
+                    isOpen={isPopupOpen}
+                    title={title} onClose={closePopups}
+                >
+                    <MeetingsPopup
+                        date={selectedDate}
+                        meetings={filteredMeetingsForSelectedDate}
+                    />
                 </ParentPopup>
             )}
             {activePopup === "settings" && (
