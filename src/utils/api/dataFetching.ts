@@ -1,4 +1,4 @@
-import { User, Meeting } from "../types/commonTypes";
+import { User, Meeting } from "../types/commonInterfaces";
 import { formatDate } from "../formatters/formatDate";
 import MainApi from "./MainApi";
 

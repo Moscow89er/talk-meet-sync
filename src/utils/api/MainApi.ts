@@ -1,4 +1,4 @@
-import { ApiOptions, EmailCalendarParams, UsersParams } from "../types/apiTypes";
+import { ApiOptions, EmailCalendarParams, UsersParams } from "../types/apiInterfaces";
 
 export default class MainApi {
     private _url: string;

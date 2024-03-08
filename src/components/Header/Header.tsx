@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import "./Header.css";
-import { Header } from "../../utils/types/commonTypes";
-import defaultImg from '../../images/default_img.jpg';
+import { Header } from "../../utils/types/commonInterfaces";
+import defaultImg from "../../images/default_img.jpg";
 
 const Header: React.FC<Header> = ( { onSettingsClick } ) => {
     const [isPopupOpen, setIsPopupOpen] = useState(false);

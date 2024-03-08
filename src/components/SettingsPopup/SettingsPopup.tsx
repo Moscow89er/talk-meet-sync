@@ -1,5 +1,5 @@
 import React, { FormEvent, useState } from "react";
-import { SettingsPopupProps } from "../../utils/types/commonTypes";
+import { SettingsPopupProps } from "../../utils/types/commonInterfaces";
 import FormField from "../FormField/FormField";
 
 const SettingsPopup: React.FC<SettingsPopupProps> = ({
@@ -20,8 +20,8 @@ const SettingsPopup: React.FC<SettingsPopupProps> = ({
 
     // Автоматическая корректировка URL
     let correctedTalkUrl = tempTalkUrl;
-    if (!correctedTalkUrl.endsWith('/')) {
-      correctedTalkUrl += '/';
+    if (!correctedTalkUrl.endsWith("/")) {
+      correctedTalkUrl += "/";
     }
 
     const numsOfLicenseAsNumber = parseInt(tempNumsOfLicense.toString(), 10);

@@ -1,7 +1,7 @@
-import React from 'react';
+import React from "react";
 import CalendarDay from "../CalendarDay/CalendarDay";
 import { getPreviousDays, getCurrentDays, getNextDays, getWeeks } from "../../utils/helpers/calendarHelpers";
-import { CalendarGridProps } from '../../utils/types/commonTypes';
+import { CalendarGridProps } from "../../utils/types/commonInterfaces";
 
 const CalendarGrid: React.FC<CalendarGridProps> = ({
   displayDate,

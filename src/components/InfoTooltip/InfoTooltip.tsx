@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { InfoTooltipProps } from "../../utils/types/commonTypes";
+import { InfoTooltipProps } from "../../utils/types/commonInterfaces";
 import onSucces from "../../images/on_succes.png";
 import onError from "../../images/on_error.png";
 import "./InfoTooltip.css";

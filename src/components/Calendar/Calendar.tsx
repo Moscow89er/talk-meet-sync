@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import CalendarGrid from "../CalendarGrid/CalendarGrid";
-import { CalendarProps } from "../../utils/types/commonTypes";
+import { CalendarProps } from "../../utils/types/commonInterfaces";
 import { monthNames } from "../../utils/constants/constants";
 import "./Calendar.css";
 
