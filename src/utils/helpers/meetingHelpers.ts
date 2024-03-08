@@ -39,7 +39,7 @@ export const isDateWithMeeting = (day: number, displayDate: Date, meetings: stri
 };
 
 // Функция для создания временной шкалы всех событий начала и окончания встреч
-const createTimeLine = (meetings: Meeting[]): { time: number; type: "start" | "end"; meeting: Meeting }[] => {
+export const createTimeLine = (meetings: Meeting[]): { time: number; type: "start" | "end"; meeting: Meeting }[] => {
     return meetings.flatMap(meeting => [
         { time: parseDate(meeting.date, meeting.startTime).getTime(), type: "start" as "start", meeting },
         { time: parseDate(meeting.date, meeting.endTime).getTime(), type: "end" as "end", meeting },

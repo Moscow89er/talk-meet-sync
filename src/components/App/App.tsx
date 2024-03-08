@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import Header from "../Header/Header";
@@ -13,12 +13,14 @@ import { User, Meeting } from "../../utils/types/commonInterfaces";
 import { handleSaveApiSettings, handleDeleteApiSettings } from "../../utils/api/apiSettingsHandlers";
 import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
-import { sortMeetingsByStartTime, findOverlappingMeetings, filterMeetingsForSelectedDate } from "../../utils/helpers/meetingHelpers";
+import { filterMeetingsForSelectedDate } from "../../utils/helpers/meetingHelpers";
 import { parseDate } from "../../utils/helpers/meetingHelpers";
 import MainApi from "../../utils/api/MainApi";
 
 export default function App() {
+    const meetingWorkerRef = useRef<Worker | null>(null);
     const [meetings, setMeetings] = useState<Meeting[]>([]);
+    const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
     const [numsOfLicence, setNumsOfLicense] = useState<number>(1);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [activePopup, setActivePopup] = useState<string | null>(null);
@@ -82,16 +84,15 @@ export default function App() {
             });
     }, [setTalkUrl, setApiKey, setNumsOfLicense, setMainApi, setMeetings, setActivePopup, setIsError, setIsInfoTooltipOpen]);
 
-    const calculatedOverlappingMeetings: Meeting[] = useMemo(() => findOverlappingMeetings(meetings, numsOfLicence), [meetings, numsOfLicence]);
     const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
-    const daysWithOverlappingMeetings = useMemo(() => new Set(calculatedOverlappingMeetings.map(m => m.date)), [calculatedOverlappingMeetings]);
+    const daysWithOverlappingMeetings = useMemo(() => new Set(overlappingMeetings.map(m => m.date)), [overlappingMeetings]);
     const filteredMeetingsForSelectedDate = useMemo(() => filterMeetingsForSelectedDate(meetings, selectedDate), [meetings, selectedDate]);
 
     const sortedOverlappingMeetings = useMemo(() => {
-        return [...calculatedOverlappingMeetings].sort((a, b) => 
+        return [...overlappingMeetings].sort((a, b) => 
             parseDate(a.date, a.startTime).getTime() - parseDate(b.date, b.startTime).getTime()
         );
-    }, [calculatedOverlappingMeetings]);
+    }, [overlappingMeetings]);
 
     // Функция для извлечения всех пользователей
     const fetchAllUsers = async (apiInstance: MainApi) => {
@@ -130,18 +131,21 @@ export default function App() {
         try {
             const allUsers = await fetchAllUsers(apiInstance);
             const allMeetings = await fetchAllMeetings(apiInstance, allUsers);
-            const sortedMeetings = [...allMeetings].sort(sortMeetingsByStartTime);
-        
-            setMeetings(sortedMeetings);
-            setIsError(false);
-          } catch (error) {
+            // Проверяем, инициализирован ли worker, и отправляем данные на обработку
+            if (meetingWorkerRef.current) {
+                meetingWorkerRef.current.postMessage({
+                    action: 'sortMeetingsByStartTime',
+                    data: allMeetings
+                });
+            }
+        } catch (error) {
             console.error("Ошибка при получении данных о встречах:", error);
             setMeetings([]);
             setIsError(true);
             setIsInfoTooltipOpen(true);
-          } finally {
+        } finally {
             setIsLoading(false);
-          }
+        }
     };
 
     // Автоматизируем открытие всплывающего окна в ответ на изменение выбранной даты
@@ -167,6 +171,42 @@ export default function App() {
             handleFetchMeetingsForAllUsers(mainApi);
         }
     }, [talkUrl, apiKey, mainApi]);
+
+    useEffect(() => {
+        // Инициализация Web Worker при монтировании компонента
+        const worker = new Worker(new URL("../../utils/workers/meetingWorker.ts", import.meta.url), { type: 'module' });
+    
+        worker.onmessage = (event) => {
+            const { action, data } = event.data;
+            switch (action) {
+                case 'sortMeetingsByStartTime':
+                    setMeetings(data);
+                    setIsLoading(false);
+                    break;
+                case 'findOverlappingMeetings':
+                    setOverlappingMeetings(data);
+                    break;
+                default:
+                    console.error("Received unknown action from worker");
+            }
+        };
+    
+        // Сохраняем экземпляр worker в ссылке
+        meetingWorkerRef.current = worker;
+    
+        // Очистка при размонтировании компонента
+        return () => worker.terminate();
+    }, []);
+
+    useEffect(() => {
+        // Теперь используем meetingWorkerRef.current для проверки и отправки сообщений
+        if (meetingWorkerRef.current) {
+            meetingWorkerRef.current.postMessage({
+                action: 'findOverlappingMeetings',
+                data: { meetings, numsOfLicence }
+            });
+        }
+    }, [meetings, numsOfLicence]);
     
     return (
         <div className="full-height">
