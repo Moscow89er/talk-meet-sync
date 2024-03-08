@@ -34,7 +34,6 @@ export const handleDeleteApiSettings = ({
     setNumsOfLicense,
     setMainApi,
     setMeetings,
-    setOverlappingMeetings,
     setActivePopup,
     setIsError,
     setIsInfoTooltipOpen,
@@ -54,8 +53,7 @@ export const handleDeleteApiSettings = ({
       const newApiInstance = new MainApi({ url: "" });
       setMainApi(newApiInstance);
   
-      setMeetings([]); 
-      setOverlappingMeetings([]);
+      setMeetings([]);
     
       setActivePopup(null);
       setIsError(false);

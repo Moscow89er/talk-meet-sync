@@ -19,10 +19,9 @@ import MainApi from "../../utils/api/MainApi";
 
 export default function App() {
     const [meetings, setMeetings] = useState<Meeting[]>([]);
-    const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
     const [numsOfLicence, setNumsOfLicense] = useState<number>(1);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
-    const [activePopup, setActivePopup] = useState(null);
+    const [activePopup, setActivePopup] = useState<string | null>(null);
     const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
     const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState<boolean>(false);
     const [isError, setIsError] = useState<boolean>(false);
@@ -40,7 +39,8 @@ export default function App() {
     }, []);
 
     const openMeetingsPopup = useCallback(() => {
-        setTitle(`Встречи на ${formatDate(selectedDate)}`);
+        const dateTitle = selectedDate ? `Встречи на ${formatDate(selectedDate)}` : 'Выбранная встреча';
+        setTitle(dateTitle);
         setActivePopup("meetings");
         setIsPopupOpen(true);
     }, [selectedDate]);
@@ -76,17 +76,22 @@ export default function App() {
             setNumsOfLicense,
             setMainApi,
             setMeetings,
-            setOverlappingMeetings,
             setActivePopup,
             setIsError,
             setIsInfoTooltipOpen,
             });
-    }, [setTalkUrl, setApiKey, setNumsOfLicense, setMainApi, setMeetings, setOverlappingMeetings, setActivePopup, setIsError, setIsInfoTooltipOpen]);
+    }, [setTalkUrl, setApiKey, setNumsOfLicense, setMainApi, setMeetings, setActivePopup, setIsError, setIsInfoTooltipOpen]);
 
-    const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
-    const daysWithOverlappingMeetings = useMemo(() => new Set(overlappingMeetings.map(m => m.date)), [overlappingMeetings]);
     const calculatedOverlappingMeetings: Meeting[] = useMemo(() => findOverlappingMeetings(meetings, numsOfLicence), [meetings, numsOfLicence]);
+    const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
+    const daysWithOverlappingMeetings = useMemo(() => new Set(calculatedOverlappingMeetings.map(m => m.date)), [calculatedOverlappingMeetings]);
     const filteredMeetingsForSelectedDate = useMemo(() => filterMeetingsForSelectedDate(meetings, selectedDate), [meetings, selectedDate]);
+
+    const sortedOverlappingMeetings = useMemo(() => {
+        return [...calculatedOverlappingMeetings].sort((a, b) => 
+            parseDate(a.date, a.startTime).getTime() - parseDate(b.date, b.startTime).getTime()
+        );
+    }, [calculatedOverlappingMeetings]);
 
     // Функция для извлечения всех пользователей
     const fetchAllUsers = async (apiInstance: MainApi) => {
@@ -128,12 +133,10 @@ export default function App() {
             const sortedMeetings = [...allMeetings].sort(sortMeetingsByStartTime);
         
             setMeetings(sortedMeetings);
-            setOverlappingMeetings(calculatedOverlappingMeetings);
             setIsError(false);
           } catch (error) {
             console.error("Ошибка при получении данных о встречах:", error);
-            setMeetings([]); 
-            setOverlappingMeetings([]);
+            setMeetings([]);
             setIsError(true);
             setIsInfoTooltipOpen(true);
           } finally {
@@ -177,7 +180,7 @@ export default function App() {
                     meetings={Array.from(daysWithMeetings)}
                 />
                 <Meetings
-                    overlappingMeetings={overlappingMeetings.sort((a, b) =>  parseDate(a.date, a.startTime).getTime() - parseDate(b.date, b.startTime).getTime())}
+                    overlappingMeetings={sortedOverlappingMeetings}
                     hasSettings={Boolean(talkUrl) && Boolean(apiKey)}
                     isError={isError}
                 />

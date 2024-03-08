@@ -21,8 +21,7 @@ export interface DeleteApiSettingsArgs {
     setApiKey: (key: string) => void;
     setNumsOfLicense: (num: number) => void;
     setMainApi: (api: MainApi) => void;
-    setMeetings: (meetings: Meeting[]) => void; // Предположим, что тип Meeting уже определен где-то
-    setOverlappingMeetings: (meetings: Meeting[]) => void;
+    setMeetings: (meetings: Meeting[]) => void;
     setActivePopup: (popup: null) => void;
     setIsError: (isError: boolean) => void;
     setIsInfoTooltipOpen: (isOpen: boolean) => void;
