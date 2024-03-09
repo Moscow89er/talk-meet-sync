@@ -1,5 +1,5 @@
 import React from "react";
-import { MeetingsProps } from "../../utils/types/commonInterfaces";
+import { MeetingsProps } from "../../utils/types/commonTypes";
 
 const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings, hasSettings, isError }) => {
     // Ограничиваем список до последних 9 встреч

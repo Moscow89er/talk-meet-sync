@@ -1,4 +1,4 @@
-import { Meeting } from "../types/commonInterfaces";
+import { Meeting } from "../types/commonTypes";
 import { formatDate } from "../formatters/formatDate";
 
 // Функция преобразования даты и времени в объект Date требуемого нам формата

@@ -1,5 +1,5 @@
 import React, { FormEvent, useState } from "react";
-import { SettingsPopupProps } from "../../utils/types/commonInterfaces";
+import { SettingsPopupProps } from "../../utils/types/commonTypes";
 import FormField from "../FormField/FormField";
 
 const SettingsPopup: React.FC<SettingsPopupProps> = ({

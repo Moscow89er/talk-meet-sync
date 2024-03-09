@@ -1,5 +1,5 @@
 import MainApi from "../api/MainApi";
-import { Meeting } from "./commonInterfaces";
+import { Meeting } from "./commonTypes";
 
 export interface ApiOptions {
     url?: string;

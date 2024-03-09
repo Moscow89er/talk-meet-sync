@@ -86,3 +86,18 @@ export interface CalendarGridProps {
     meetings: string[];
     handleDayClick: (day: number, isCurrentMonthDay: boolean) => void;
 }
+
+interface SortMeetingsByStartTimeMessage {
+    action: "sortMeetingsByStartTime";
+    data: Meeting[];
+}
+  
+interface FindOverlappingMeetingsMessage {
+    action: "findOverlappingMeetings";
+    data: {
+      meetings: Meeting[];
+      numsOfLicence: number;
+    };
+}
+
+export type WorkerMessage = SortMeetingsByStartTimeMessage | FindOverlappingMeetingsMessage;

@@ -1,5 +1,5 @@
 import React from "react";
-import { MeetingsPopupProps } from "../../utils/types/commonInterfaces";
+import { MeetingsPopupProps } from "../../utils/types/commonTypes";
 
 const MeetingsPopup: React.FC<MeetingsPopupProps> = ({ meetings }) => {
     return (

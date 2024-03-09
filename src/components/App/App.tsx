@@ -9,7 +9,7 @@ import MeetingsPopup from "../MeetingsPopup/MeetingsPopup";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
 import Preloader from "../Preloader/Preloader";
-import { User, Meeting } from "../../utils/types/commonInterfaces";
+import { User, Meeting } from "../../utils/types/commonTypes";
 import { handleSaveApiSettings, handleDeleteApiSettings } from "../../utils/api/apiSettingsHandlers";
 import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
@@ -41,7 +41,7 @@ export default function App() {
     }, []);
 
     const openMeetingsPopup = useCallback(() => {
-        const dateTitle = selectedDate ? `Встречи на ${formatDate(selectedDate)}` : 'Выбранная встреча';
+        const dateTitle = selectedDate ? `Встречи на ${formatDate(selectedDate)}` : "Выбранная встреча";
         setTitle(dateTitle);
         setActivePopup("meetings");
         setIsPopupOpen(true);
@@ -134,7 +134,7 @@ export default function App() {
             // Проверяем, инициализирован ли worker, и отправляем данные на обработку
             if (meetingWorkerRef.current) {
                 meetingWorkerRef.current.postMessage({
-                    action: 'sortMeetingsByStartTime',
+                    action: "sortMeetingsByStartTime",
                     data: allMeetings
                 });
             }
@@ -174,16 +174,16 @@ export default function App() {
 
     useEffect(() => {
         // Инициализация Web Worker при монтировании компонента
-        const worker = new Worker(new URL("../../utils/workers/meetingWorker.ts", import.meta.url), { type: 'module' });
+        const worker = new Worker(new URL("../../utils/workers/meetingWorker.ts", import.meta.url), { type: "module" });
     
         worker.onmessage = (event) => {
             const { action, data } = event.data;
             switch (action) {
-                case 'sortMeetingsByStartTime':
+                case "sortMeetingsByStartTime":
                     setMeetings(data);
                     setIsLoading(false);
                     break;
-                case 'findOverlappingMeetings':
+                case "findOverlappingMeetings":
                     setOverlappingMeetings(data);
                     break;
                 default:
@@ -202,7 +202,7 @@ export default function App() {
         // Теперь используем meetingWorkerRef.current для проверки и отправки сообщений
         if (meetingWorkerRef.current) {
             meetingWorkerRef.current.postMessage({
-                action: 'findOverlappingMeetings',
+                action: "findOverlappingMeetings",
                 data: { meetings, numsOfLicence }
             });
         }

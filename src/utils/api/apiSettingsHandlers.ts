@@ -1,4 +1,4 @@
-import { ApiSettingsArgs, DeleteApiSettingsArgs } from "../types/apiInterfaces";
+import { ApiSettingsArgs, DeleteApiSettingsArgs } from "../types/apiTypes";
 import MainApi from "./MainApi";
 
 export const handleSaveApiSettings = async ({
