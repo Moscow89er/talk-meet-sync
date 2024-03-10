@@ -1,23 +1,10 @@
 import React from "react";
+import { filterUpcomingMeetings } from "../../utils/helpers/meetingHelpers";
 import { MeetingsProps } from "../../utils/types/commonTypes";
+import MeetingsList from "../MeetingsList/MeetingsList";
 
 const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings, hasSettings, isError }) => {
-    // Ограничиваем список до последних 9 встреч
-    const slicedMeetings = overlappingMeetings.slice(-9);
-
-    const meetingList = slicedMeetings.map(meeting => (
-        <div key={meeting.id} className="col-12 col-md-4 mb-3">
-            <div className="card h-100">
-                <div className="card-body">
-                    <h5 className="card-title text-primary">{meeting.title}</h5>
-                    <p className="card-text">{meeting.name}</p>
-                </div>
-                <div className="card-footer text-muted">
-                    <time>{meeting.date}</time> | <time>{meeting.startTime} - {meeting.endTime}</time>
-                </div>
-            </div>
-        </div>
-    ));
+    const slicedMeetings = filterUpcomingMeetings(overlappingMeetings);
 
     let headerText: string;
 
@@ -37,9 +24,7 @@ const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings, hasSettings, i
                         <h3 className="text-start my-4 fw-bold">{headerText}</h3>
                     </div>
                 </div>
-                <div className="row">
-                    {Array.isArray(slicedMeetings) && meetingList}
-                </div>
+                <MeetingsList meetings={slicedMeetings} />
             </div>
         </section>
     );

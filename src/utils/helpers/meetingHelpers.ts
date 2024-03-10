@@ -8,6 +8,19 @@ export const parseDate = (dateString: string, timeString: string) => {
     return new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
 }
 
+export const filterUpcomingMeetings = (meetings: Meeting[], limit = 9) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Устанавливаем начало текущего дня
+
+    const upcomingMeetings = meetings.filter(meeting => {
+        const meetingDate = parseDate(meeting.date, "00:00"); // Используем начало дня для сравнения
+        return meetingDate >= today;
+    });
+
+    // Ограничиваем список до заданного лимита встреч, по умолчанию до 9
+    return upcomingMeetings.slice(0, limit);
+};
+
 // Функция для проверки, есть ли перекрытие в конкретный день
 export const isDateOverlapping = (day: number, displayDate: Date, overlappingMeetings: string[], isCurrentMonthDay: boolean): boolean => {
     if (!isCurrentMonthDay) return false;

@@ -87,6 +87,10 @@ export interface CalendarGridProps {
     handleDayClick: (day: number, isCurrentMonthDay: boolean) => void;
 }
 
+export interface MeetingsListProps {
+    meetings: Meeting[];
+}
+
 interface SortMeetingsByStartTimeMessage {
     action: "sortMeetingsByStartTime";
     data: Meeting[];

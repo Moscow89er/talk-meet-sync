@@ -9,10 +9,19 @@ export const parseDate = (dateString: string, timeString: string): Date => {
 
 // Функция для создания временной шкалы всех событий начала и окончания встреч
 const createTimeLine = (meetings: Meeting[]): { time: number; type: "start" | "end"; meeting: Meeting }[] => {
-    return meetings.flatMap(meeting => [
-        { time: parseDate(meeting.date, meeting.startTime).getTime(), type: "start" as const, meeting },
-        { time: parseDate(meeting.date, meeting.endTime).getTime(), type: "end" as const, meeting },
-    ]).sort((a, b) => a.time - b.time || (a.type === "start" ? -1 : 1));
+    const now = new Date().getTime(); // Получаем текущее время в миллисекундах
+
+    return meetings.flatMap(meeting => {
+        const startTime = parseDate(meeting.date, meeting.startTime).getTime();
+        const endTime = parseDate(meeting.date, meeting.endTime).getTime();
+        // Исключаем события, которые уже прошли
+        if (endTime < now) return [];
+
+        return [
+            { time: startTime, type: "start" as const, meeting },
+            { time: endTime, type: "end" as const, meeting },
+        ];
+    }).sort((a, b) => a.time - b.time || (a.type === "start" ? -1 : 1));
 };
 
 // Обработка сообщений, отправленных в Web Worker
