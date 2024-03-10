@@ -1,6 +1,7 @@
 import { User, Meeting } from "../types/commonTypes";
 import { formatDate } from "../formatters/formatDate";
 import MainApi from "./MainApi";
+import { ApiResponseUser, ApiResponseMeetingItem } from "../types/apiTypes";
 
 export const fetchUsers = async (mainApi: MainApi, top: number, offset?: string): Promise<{ users: User[], offset: string }> => {
     const params = { top, offset };
@@ -10,7 +11,7 @@ export const fetchUsers = async (mainApi: MainApi, top: number, offset?: string)
         throw new Error("Неправильный формат ответа API");
     }
 
-    const usersData: User[] = response.users.map((user: any) => ({
+    const usersData: User[] = response.users.map((user: ApiResponseUser) => ({
         email: user.email,
         firstname: user.firstname,
         surname: user.surname,
@@ -24,7 +25,7 @@ export const fetchMeetings = async (mainApi: MainApi, email: string): Promise<Me
     const params = { email };
     const response = await mainApi.getEmailCalendar(params);
 
-    const meetingsData = response.items.map((item: any) => ({
+    const meetingsData = response.items.map((item: ApiResponseMeetingItem) => ({
         id: item.id,
         title: item.subject,
         name: item.organizer.name,

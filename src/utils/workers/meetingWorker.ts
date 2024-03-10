@@ -10,8 +10,8 @@ export const parseDate = (dateString: string, timeString: string): Date => {
 // Функция для создания временной шкалы всех событий начала и окончания встреч
 const createTimeLine = (meetings: Meeting[]): { time: number; type: "start" | "end"; meeting: Meeting }[] => {
     return meetings.flatMap(meeting => [
-        { time: parseDate(meeting.date, meeting.startTime).getTime(), type: "start" as "start", meeting },
-        { time: parseDate(meeting.date, meeting.endTime).getTime(), type: "end" as "end", meeting },
+        { time: parseDate(meeting.date, meeting.startTime).getTime(), type: "start" as const, meeting },
+        { time: parseDate(meeting.date, meeting.endTime).getTime(), type: "end" as const, meeting },
     ]).sort((a, b) => a.time - b.time || (a.type === "start" ? -1 : 1));
 };
 
@@ -24,7 +24,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
     // Обработка разных действий в зависимости от указанного типа действия
     switch (action) {
         // Сортировка встреч по времени начала
-        case "sortMeetingsByStartTime":
+        case "sortMeetingsByStartTime": {
             // Приведение типа данных к Meeting[] и сортировка
             const sortedData = (data as Meeting[]).sort((meetingFirst, meetingSecond): number => {
                 // Преобразование даты и времени начала в числовой формат для сравнения
@@ -35,16 +35,16 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
             });
             result = sortedData;
             break;
-
+        }
         // Поиск перекрывающихся встреч
-        case "findOverlappingMeetings":
+        case "findOverlappingMeetings": {
             // Приведение типа данных и извлечение необходимых значений
             const { meetings, numsOfLicence } = data as { meetings: Meeting[]; numsOfLicence: number };
             // Создание временной шкалы для всех встреч
             const timeline = createTimeLine(meetings);
             let currentMeetings = 0;
-            let activeMeetings = new Set<Meeting>();
-            let overlappingMeetings = new Set<Meeting>();
+            const activeMeetings = new Set<Meeting>();
+            const overlappingMeetings = new Set<Meeting>();
 
             // Перебор всех событий во временной шкале
             timeline.forEach(event => {
@@ -73,7 +73,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
             // Формирование результата из перекрывающихся встреч
             result = Array.from(overlappingMeetings);
             break;
-
+        }
         // Обработка неизвестного действия
         default:
             console.error(`Unknown meeting action: ${action}`);

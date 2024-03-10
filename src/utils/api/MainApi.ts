@@ -1,4 +1,5 @@
-import { ApiOptions, EmailCalendarParams, UsersParams } from "../types/apiTypes";
+import { ApiOptions, EmailCalendarParams, EmailCalendarResponse, UsersParams } from "../types/apiTypes";
+import { User } from "../types/commonTypes";
 
 export default class MainApi {
     private _url: string;
@@ -14,7 +15,7 @@ export default class MainApi {
     }
 
     // Метод для создания строки запроса из переданных параметров
-    private _getQueryString(params: Record<string, any>): string {
+    private _getQueryString(params: Record<string, string | number | boolean>): string {
         // Получение ключей объекта
         return Object.keys(params)
             // Фильтрация ключей
@@ -47,7 +48,7 @@ export default class MainApi {
     }
 
     // Методы для выполнения запросов
-    public getEmailCalendar(params: EmailCalendarParams): Promise<any> {
+    public getEmailCalendar(params: EmailCalendarParams): Promise<EmailCalendarResponse> {
         const queryString = this._getQueryString(params);
 
         return fetch(`${this._url}emailCalendar/${params.email}?${queryString}`, {
@@ -57,7 +58,7 @@ export default class MainApi {
             .then(this._checkResponse);
     }
 
-    public getUsers(params: UsersParams): Promise<any> {
+    public getUsers(params: UsersParams): Promise<{ users: User[], offset: string }> {
         const queryString = this._getQueryString(params);
         return fetch(`${this._url}users/scan?${queryString}`, {
             method: "GET",

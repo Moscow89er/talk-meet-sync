@@ -138,6 +138,7 @@ export default function App() {
                     data: allMeetings
                 });
             }
+            setIsError(false);
         } catch (error) {
             console.error("Ошибка при получении данных о встречах:", error);
             setMeetings([]);

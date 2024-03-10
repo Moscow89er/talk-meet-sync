@@ -1,5 +1,5 @@
 export interface Meeting {
-    id: number;
+    id: string;
     title: string;
     name: string;
     date: string;
@@ -13,8 +13,8 @@ export interface Header {
 
 export interface MeetingsProps {
     overlappingMeetings: Meeting[];
-    hasSettings: Boolean;
-    isError: Boolean;
+    hasSettings: boolean;
+    isError: boolean;
 }
 
 export interface User {

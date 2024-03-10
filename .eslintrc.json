@@ -6,6 +6,10 @@
       "plugin:react/recommended",
       "plugin:react-hooks/recommended"
     ],
+    "ignorePatterns": [
+      "build/**",
+      "bundle.js"
+    ],
     "settings": {
       "react": {
         "version": "detect"
