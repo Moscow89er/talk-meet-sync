@@ -125,7 +125,7 @@ export default function App() {
         return meetingsResults.flat();
     };
       
-    const handleFetchMeetingsForAllUsers = async (apiInstance: MainApi) => {
+    const fetchMeetingsForUsers = async (apiInstance: MainApi) => {
         // Начало выполнения и установка состояния загрузки
         setIsLoading(true);
         try {
@@ -164,14 +164,12 @@ export default function App() {
         
         if (apiKey) localStorage.setItem("apiKey", apiKey);
         else localStorage.removeItem("apiKey");
-    }, [talkUrl, apiKey]);
 
-    // Автоматизация запросов к серверу в ответ на изменение состояния
-    useEffect(() => {
         if (talkUrl && apiKey) {
-            handleFetchMeetingsForAllUsers(mainApi);
+            fetchMeetingsForUsers(mainApi);
         }
     }, [talkUrl, apiKey, mainApi]);
+
 
     useEffect(() => {
         // Инициализация Web Worker при монтировании компонента
