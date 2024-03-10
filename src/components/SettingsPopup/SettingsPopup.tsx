@@ -20,8 +20,8 @@ const SettingsPopup: React.FC<SettingsPopupProps> = ({
 
     // Автоматическая корректировка URL
     let correctedTalkUrl = tempTalkUrl;
-    if (!correctedTalkUrl.endsWith("/")) {
-      correctedTalkUrl += "/";
+    if (!correctedTalkUrl.endsWith("/api/")) {
+      correctedTalkUrl = correctedTalkUrl.endsWith("/") ? `${correctedTalkUrl}api/` : `${correctedTalkUrl}/api/`;
     }
 
     const numsOfLicenseAsNumber = parseInt(tempNumsOfLicense.toString(), 10);
