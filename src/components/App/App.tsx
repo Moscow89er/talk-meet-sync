@@ -184,6 +184,7 @@ export default function App() {
                     break;
                 case "findOverlappingMeetings":
                     setOverlappingMeetings(data);
+                    setIsLoading(false);
                     break;
                 default:
                     console.error("Received unknown action from worker");
