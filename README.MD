@@ -17,7 +17,7 @@ https://moscow89er.github.io/talk-meet-sync/
 - https://github.com/Moscow89er/talk-meet-sync.git
 
 ## Перейдите в папку проекта и установите необходимые зависимости
-- cd talk-meet-synk
+- cd talk-meet-sync
 - npm install
 
 ## Запустите проект
@@ -34,6 +34,7 @@ https://moscow89er.github.io/talk-meet-sync/
 - React - библиотека для пользовательского интерфейса
 - Bootstrap - для стилей и адаптивного дизайна
 - TypeScript - типизированная надстройка над JavaScript
+- Jest - библиотека для тестирования функциональности
 
 ## Возможные улучшения проекта
 - Обработка разных ошибок при запросах к серверу
