@@ -14,21 +14,26 @@ import { handleSaveApiSettings, handleDeleteApiSettings } from "../../utils/api/
 import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
 import { filterMeetingsForSelectedDate } from "../../utils/helpers/meetingHelpers";
-import { parseDate } from "../../utils/helpers/meetingHelpers";
 import MainApi from "../../utils/api/MainApi";
 
 export default function App() {
     const meetingWorkerRef = useRef<Worker | null>(null);
+
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
     const [numsOfLicence, setNumsOfLicense] = useState<number>(1);
+
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
     const [activePopup, setActivePopup] = useState<string | null>(null);
     const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
+
     const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState<boolean>(false);
     const [isError, setIsError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
     const [title, setTitle] = useState("");
+
     const [talkUrl, setTalkUrl] = useState(localStorage.getItem("talkUrl") || "");
     const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
     const [mainApi, setMainApi] = useState(new MainApi({
@@ -78,21 +83,17 @@ export default function App() {
             setNumsOfLicense,
             setMainApi,
             setMeetings,
+            setOverlappingMeetings,
             setActivePopup,
             setIsError,
             setIsInfoTooltipOpen,
-            });
-    }, [setTalkUrl, setApiKey, setNumsOfLicense, setMainApi, setMeetings, setActivePopup, setIsError, setIsInfoTooltipOpen]);
+        });
+        
+    }, [setTalkUrl, setApiKey, setNumsOfLicense, setMainApi, setMeetings, setOverlappingMeetings, setActivePopup, setIsError, setIsInfoTooltipOpen]);
 
     const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
     const daysWithOverlappingMeetings = useMemo(() => new Set(overlappingMeetings.map(m => m.date)), [overlappingMeetings]);
     const filteredMeetingsForSelectedDate = useMemo(() => filterMeetingsForSelectedDate(meetings, selectedDate), [meetings, selectedDate]);
-
-    const sortedOverlappingMeetings = useMemo(() => {
-        return [...overlappingMeetings].sort((a, b) => 
-            parseDate(a.date, a.startTime).getTime() - parseDate(b.date, b.startTime).getTime()
-        );
-    }, [overlappingMeetings]);
 
     // Функция для извлечения всех пользователей
     const fetchAllUsers = async (apiInstance: MainApi) => {
@@ -125,7 +126,7 @@ export default function App() {
         return meetingsResults.flat();
     };
       
-    const fetchMeetingsForUsers = async (apiInstance: MainApi) => {
+    const fetchMeetingsForUsers = async (apiInstance: MainApi, numsOfLicence: number) => {
         // Начало выполнения и установка состояния загрузки
         setIsLoading(true);
         try {
@@ -134,20 +135,46 @@ export default function App() {
             // Проверяем, инициализирован ли worker, и отправляем данные на обработку
             if (meetingWorkerRef.current) {
                 meetingWorkerRef.current.postMessage({
-                    action: "sortMeetingsByStartTime",
-                    data: allMeetings
+                    action: "sortAndIdentifyOverlaps",
+                    data: { meetings: allMeetings, numsOfLicence }
                 });
             }
             setIsError(false);
         } catch (error) {
             console.error("Ошибка при получении данных о встречах:", error);
             setMeetings([]);
+            setOverlappingMeetings([]);
             setIsError(true);
             setIsInfoTooltipOpen(true);
         } finally {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        // Инициализация Web Worker при монтировании компонента
+        const worker = new Worker(new URL("../../utils/workers/meetingWorker.ts", import.meta.url), { type: "module" });
+    
+        worker.onmessage = (event) => {
+            const { action, data } = event.data;
+            switch (action) {
+                case "sortAndIdentifyOverlaps":
+                    const { sortedMeetings, overlappingMeetings } = data;
+                    setMeetings(sortedMeetings);
+                    setOverlappingMeetings(overlappingMeetings);
+                    setIsLoading(false);
+                    break;
+                default:
+                    console.error("Received unknown action from worker");
+            }
+        };
+    
+        // Сохраняем экземпляр worker в ссылке
+        meetingWorkerRef.current = worker;
+    
+        // Очистка при размонтировании компонента
+        return () => worker.terminate();
+    }, []);
 
     // Автоматизируем открытие всплывающего окна в ответ на изменение выбранной даты
     useEffect(() => {
@@ -166,47 +193,10 @@ export default function App() {
         else localStorage.removeItem("apiKey");
 
         if (talkUrl && apiKey) {
-            fetchMeetingsForUsers(mainApi);
+            fetchMeetingsForUsers(mainApi, numsOfLicence);
         }
-    }, [talkUrl, apiKey, mainApi]);
+    }, [talkUrl, apiKey, mainApi, numsOfLicence]);
 
-
-    useEffect(() => {
-        // Инициализация Web Worker при монтировании компонента
-        const worker = new Worker(new URL("../../utils/workers/meetingWorker.ts", import.meta.url), { type: "module" });
-    
-        worker.onmessage = (event) => {
-            const { action, data } = event.data;
-            switch (action) {
-                case "sortMeetingsByStartTime":
-                    setMeetings(data);
-                    setIsLoading(false);
-                    break;
-                case "findOverlappingMeetings":
-                    setOverlappingMeetings(data);
-                    setIsLoading(false);
-                    break;
-                default:
-                    console.error("Received unknown action from worker");
-            }
-        };
-    
-        // Сохраняем экземпляр worker в ссылке
-        meetingWorkerRef.current = worker;
-    
-        // Очистка при размонтировании компонента
-        return () => worker.terminate();
-    }, []);
-
-    useEffect(() => {
-        // Теперь используем meetingWorkerRef.current для проверки и отправки сообщений
-        if (meetingWorkerRef.current) {
-            meetingWorkerRef.current.postMessage({
-                action: "findOverlappingMeetings",
-                data: { meetings, numsOfLicence }
-            });
-        }
-    }, [meetings, numsOfLicence]);
     
     return (
         <div className="full-height">
@@ -220,7 +210,7 @@ export default function App() {
                     meetings={Array.from(daysWithMeetings)}
                 />
                 <Meetings
-                    overlappingMeetings={sortedOverlappingMeetings}
+                    overlappingMeetings={overlappingMeetings}
                     hasSettings={Boolean(talkUrl) && Boolean(apiKey)}
                     isError={isError}
                 />

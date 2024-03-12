@@ -3,6 +3,14 @@
     width: 60vw;
 }
 
+
+@media (max-width: 480px) {
+  .calendar__container {
+    margin: 0;
+    width: auto;
+  }
+}
+
 .calendar__day--current {
   color: blue !important;
   background-color: rgb(203, 225, 254) !important;

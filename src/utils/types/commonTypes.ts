@@ -90,18 +90,11 @@ export interface CalendarGridProps {
 export interface MeetingsListProps {
     meetings: Meeting[];
 }
-
-interface SortMeetingsByStartTimeMessage {
-    action: "sortMeetingsByStartTime";
-    data: Meeting[];
-}
   
-interface FindOverlappingMeetingsMessage {
-    action: "findOverlappingMeetings";
+export interface sortAndIdentifyOverlaps {
+    action: "sortAndIdentifyOverlaps";
     data: {
       meetings: Meeting[];
       numsOfLicence: number;
     };
 }
-
-export type WorkerMessage = SortMeetingsByStartTimeMessage | FindOverlappingMeetingsMessage;

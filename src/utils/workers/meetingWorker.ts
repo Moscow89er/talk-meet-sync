@@ -1,4 +1,4 @@
-import { Meeting, WorkerMessage } from "../types/commonTypes";
+import { Meeting, sortAndIdentifyOverlaps } from "../types/commonTypes";
 
 // Функция преобразования даты и времени в объект Date требуемого нам формата
 export const parseDate = (dateString: string, timeString: string): Date => {
@@ -24,33 +24,34 @@ export const createTimeLine = (meetings: Meeting[]): { time: number; type: "star
     }).sort((a, b) => a.time - b.time || (a.type === "start" ? -1 : 1));
 };
 
+// Функция сортировки встреч по времени начала
+export const sortMeetingsByStartTime = (meetings: Meeting[]): Meeting[] => {
+    return meetings.sort((meetingFirst, meetingSecond): number => {
+        // Преобразование даты и времени начала в числовой формат для сравнения
+        const startTimeFirst = parseDate(meetingFirst.date, meetingFirst.startTime).getTime();
+        const startTimeSecond = parseDate(meetingSecond.date, meetingSecond.startTime).getTime();
+        // Возвращение разницы между временами начала для сортировки
+        return startTimeFirst - startTimeSecond;
+    });
+};
+
 // Обработка сообщений, отправленных в Web Worker
-self.onmessage = (event: MessageEvent<WorkerMessage>) => {
+self.onmessage = (event: MessageEvent<sortAndIdentifyOverlaps>) => {
     // Извлечение действия и данных из полученного сообщения
     const { action, data } = event.data;
-    let result: Meeting[] | undefined;
 
     // Обработка разных действий в зависимости от указанного типа действия
     switch (action) {
-        // Сортировка встреч по времени начала
-        case "sortMeetingsByStartTime": {
-            // Приведение типа данных к Meeting[] и сортировка
-            const sortedData = (data as Meeting[]).sort((meetingFirst, meetingSecond): number => {
-                // Преобразование даты и времени начала в числовой формат для сравнения
-                const startTimeFirst = parseDate(meetingFirst.date, meetingFirst.startTime).getTime();
-                const startTimeSecond = parseDate(meetingSecond.date, meetingSecond.startTime).getTime();
-                // Возвращение разницы между временами начала для сортировки
-                return startTimeFirst - startTimeSecond;
-            });
-            result = sortedData;
-            break;
-        }
-        // Поиск перекрывающихся встреч
-        case "findOverlappingMeetings": {
+        // Сортировка встреч по времени начала, поиск перекрывающихся встреч
+        case "sortAndIdentifyOverlaps": {
             // Приведение типа данных и извлечение необходимых значений
             const { meetings, numsOfLicence } = data as { meetings: Meeting[]; numsOfLicence: number };
+
+            // Сортировка встреч по времени начала
+            const sortedMeetings = sortMeetingsByStartTime(meetings)
+
             // Создание временной шкалы для всех встреч
-            const timeline = createTimeLine(meetings);
+            const timeline = createTimeLine(sortedMeetings);
             let currentMeetings = 0;
             const activeMeetings = new Set<Meeting>();
             const overlappingMeetings = new Set<Meeting>();
@@ -79,18 +80,12 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
                 }
             });
 
-            // Формирование результата из перекрывающихся встреч
-            result = Array.from(overlappingMeetings);
+            self.postMessage({ action, data: { sortedMeetings, overlappingMeetings: Array.from(overlappingMeetings) } });
             break;
         }
         // Обработка неизвестного действия
         default:
             console.error(`Unknown meeting action: ${action}`);
             return;
-    }
-
-    // Отправка результата обратно в основной поток
-    if (result) {
-        self.postMessage({ action, data: result });
     }
 };

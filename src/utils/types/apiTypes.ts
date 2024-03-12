@@ -22,6 +22,7 @@ export interface DeleteApiSettingsArgs {
     setNumsOfLicense: (num: number) => void;
     setMainApi: (api: MainApi) => void;
     setMeetings: (meetings: Meeting[]) => void;
+    setOverlappingMeetings: (meetings: Meeting[]) => void;
     setActivePopup: (popup: null) => void;
     setIsError: (isError: boolean) => void;
     setIsInfoTooltipOpen: (isOpen: boolean) => void;

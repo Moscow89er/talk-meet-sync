@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { PopupProps } from "../../utils/types/commonTypes";
 import "./ParentPopup.css";
 
-const Popup: React.FC<PopupProps> = ({ isOpen, title, children, onClose }) => {
+const ParentPopup: React.FC<PopupProps> = ({ isOpen, title, children, onClose }) => {
     const popupRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -48,4 +48,4 @@ const Popup: React.FC<PopupProps> = ({ isOpen, title, children, onClose }) => {
     );
 };
 
-export default Popup;
+export default ParentPopup;
