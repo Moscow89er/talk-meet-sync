@@ -8,17 +8,28 @@ const Calendar: React.FC<CalendarProps> = ({
   onDateSelect,
   onIsPopupVisible,
   overlappingMeetings,
-  meetings
+  meetings,
+  onMonthChange
  }) => {
   const [displayDate, setDisplayDate] = useState(new Date());
   const currentDate = new Date();
 
   const handlePrevMonth = useCallback(() => {
-    setDisplayDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1));
+    setDisplayDate(prevDate => {
+      // Создаем новую дату, относящуюся к первому дню предыдущего месяца
+      const newDate = new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1);
+      onMonthChange(newDate);
+      return newDate;
+    });
   }, []);
 
   const handleNextMonth = useCallback(() => {
-    setDisplayDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1));
+    setDisplayDate(prevDate => {
+      // Создаем новую дату, относящуюся к первому дню следующего месяца
+      const newDate = new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1);
+      onMonthChange(newDate);
+      return newDate;
+    });
   }, []);
 
   const handleDayClick = useCallback((day: number, isCurrentMonthDay: boolean) => {

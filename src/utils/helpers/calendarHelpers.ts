@@ -36,3 +36,13 @@ export const getWeeks = (days: number[]): number[][] => {
     }
     return weeks;
 };
+
+// Функция для определения полного диапазона дат текущего месяца, который затем может быть использован для загрузки данных за этот период
+export const getCurrentMonthDateRange = (date: Date) => {
+    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    
+    const format = (date: Date) => date.toISOString().split("T")[0];
+    
+    return { startDate: format(startOfMonth), endDate: format(endOfMonth) };
+};

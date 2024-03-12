@@ -14,6 +14,7 @@ import { handleSaveApiSettings, handleDeleteApiSettings } from "../../utils/api/
 import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
 import { filterMeetingsForSelectedDate } from "../../utils/helpers/meetingHelpers";
+import { getCurrentMonthDateRange } from "../../utils/helpers/calendarHelpers";
 import MainApi from "../../utils/api/MainApi";
 
 export default function App() {
@@ -40,6 +41,8 @@ export default function App() {
         url: talkUrl
     }));
 
+    console.log(meetings, overlappingMeetings);
+
     const closePopups = useCallback(() => {
         setActivePopup(null);
         setIsInfoTooltipOpen(false);
@@ -61,6 +64,14 @@ export default function App() {
     const handleSettingsClick = (event: React.MouseEvent) => {
         event.preventDefault();
         openSettingsPopup();
+    };
+
+    // Обработка изменение текущего отображаемого месяца в календаре
+    const handleMonthChange = (newDisplayDate: Date) => {
+        // Рассчитываем начальную и конечную даты для месяца
+        const { startDate, endDate } = getCurrentMonthDateRange(newDisplayDate);
+        // Загружаем встречи для текущего пользователя (пользователей) в новом диапазоне дат
+        fetchMeetingsForUsers(mainApi, numsOfLicence, startDate, endDate);
     };
 
     const onSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string, newNumsOfLicense: number) => {
@@ -117,21 +128,21 @@ export default function App() {
     };
 
     // Функция для извлечения всех встреч
-    const fetchAllMeetings = async (apiInstance: MainApi, users: User[]) => {
+    const fetchAllMeetings = async (apiInstance: MainApi, users: User[], startDate: string, endDate: string) => {
         // Параллельное извлечение данных о встречах
-        const meetingsPromises = users.map(user => fetchMeetings(apiInstance, user.email));
+        const meetingsPromises = users.map(user => fetchMeetings(apiInstance, user.email, startDate, endDate));
         // Ожидаем завершения всех ассинхронных операций извлечения встреч
         const meetingsResults = await Promise.all(meetingsPromises);
         // Результат объединяем в один массив
         return meetingsResults.flat();
     };
       
-    const fetchMeetingsForUsers = async (apiInstance: MainApi, numsOfLicence: number) => {
+    const fetchMeetingsForUsers = async (apiInstance: MainApi, numsOfLicence: number, startDate: string, endDate: string) => {
         // Начало выполнения и установка состояния загрузки
         setIsLoading(true);
         try {
             const allUsers = await fetchAllUsers(apiInstance);
-            const allMeetings = await fetchAllMeetings(apiInstance, allUsers);
+            const allMeetings = await fetchAllMeetings(apiInstance, allUsers, startDate, endDate);
             // Проверяем, инициализирован ли worker, и отправляем данные на обработку
             if (meetingWorkerRef.current) {
                 meetingWorkerRef.current.postMessage({
@@ -191,11 +202,7 @@ export default function App() {
         
         if (apiKey) localStorage.setItem("apiKey", apiKey);
         else localStorage.removeItem("apiKey");
-
-        if (talkUrl && apiKey) {
-            fetchMeetingsForUsers(mainApi, numsOfLicence);
-        }
-    }, [talkUrl, apiKey, mainApi, numsOfLicence]);
+    }, [talkUrl, apiKey]);
 
     
     return (
@@ -208,6 +215,7 @@ export default function App() {
                     onIsPopupVisible={openMeetingsPopup}
                     overlappingMeetings={Array.from(daysWithOverlappingMeetings)}
                     meetings={Array.from(daysWithMeetings)}
+                    onMonthChange={handleMonthChange}
                 />
                 <Meetings
                     overlappingMeetings={overlappingMeetings}

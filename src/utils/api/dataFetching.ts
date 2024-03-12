@@ -3,7 +3,11 @@ import { formatDate } from "../formatters/formatDate";
 import MainApi from "./MainApi";
 import { ApiResponseUser, ApiResponseMeetingItem } from "../types/apiTypes";
 
-export const fetchUsers = async (mainApi: MainApi, top: number, offset?: string): Promise<{ users: User[], offset: string }> => {
+export const fetchUsers = async (
+    mainApi: MainApi,
+    top: number,
+    offset?: string
+): Promise<{ users: User[], offset: string }> => {
     const params = { top, offset };
     const response = await mainApi.getUsers(params);
 
@@ -21,8 +25,20 @@ export const fetchUsers = async (mainApi: MainApi, top: number, offset?: string)
     return { users: usersData, offset: response.offset };
 };
 
-export const fetchMeetings = async (mainApi: MainApi, email: string): Promise<Meeting[]> => {
-    const params = { email };
+export const fetchMeetings = async (
+    mainApi: MainApi,
+    email: string,
+    startDate: string,
+    endDate: string,
+    take: number = 100 // Установим значение по умолчанию для параметра take, если оно не предоставлено
+): Promise<Meeting[]> => {
+    const params = {
+        email: email,
+        start: startDate,
+        to: endDate,
+        take: take
+    };
+
     const response = await mainApi.getEmailCalendar(params);
 
     const meetingsData = response.items.map((item: ApiResponseMeetingItem) => ({
