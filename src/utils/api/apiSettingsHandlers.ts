@@ -4,10 +4,10 @@ import MainApi from "./MainApi";
 export const handleSaveApiSettings = async ({
     newTalkUrl,
     newApiKey,
-    newNumsOfLicense,
+    newNumsOfLicence,
     setTalkUrl,
     setApiKey,
-    setNumsOfLicense,
+    setNumsOfLicence,
     setMainApi,
     closePopups,
 }: ApiSettingsArgs) => {
@@ -17,7 +17,7 @@ export const handleSaveApiSettings = async ({
 
         setTalkUrl(newTalkUrl);
         setApiKey(newApiKey);
-        setNumsOfLicense(newNumsOfLicense);
+        setNumsOfLicence(newNumsOfLicence);
 
         const updatedApiInstance = new MainApi({ url: newTalkUrl });
         updatedApiInstance.updateConfig({ apiKey: newApiKey });
@@ -31,7 +31,7 @@ export const handleSaveApiSettings = async ({
 export const handleDeleteApiSettings = ({
     setTalkUrl,
     setApiKey,
-    setNumsOfLicense,
+    setNumsOfLicence,
     setMainApi,
     setMeetings,
     setOverlappingMeetings,
@@ -48,7 +48,7 @@ export const handleDeleteApiSettings = ({
       
       setTalkUrl("");
       setApiKey("");
-      setNumsOfLicense(0);
+      setNumsOfLicence(0);
     
       // Создание нового экземпляра MainApi с начальными настройками
       const newApiInstance = new MainApi({ url: "" });

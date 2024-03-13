@@ -17,13 +17,15 @@ export default class MainApi {
     // Метод для создания строки запроса из переданных параметров
     private _getQueryString(params: Record<string, string | number | boolean>): string {
         // Получение ключей объекта
-        return Object.keys(params)
+        const result = Object.keys(params)
             // Фильтрация ключей
             .filter(key => params[key] !== undefined)
             // Преобразование пар ключ-значение в строки
             .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
             // Соединение строк
             .join("&");
+
+        return result;
     }
 
     // Метод для проверки ответа от сервера

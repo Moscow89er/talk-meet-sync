@@ -1,3 +1,5 @@
+import { DateRange } from "../types/commonTypes";
+
 export const getPreviousDays = (firstDayOfMonth: number, lastDayOfLastMonth: number): number[] => {
     const previousDays = [];
     for (let i = firstDayOfMonth - 1; i > 0; i--) {
@@ -37,12 +39,24 @@ export const getWeeks = (days: number[]): number[][] => {
     return weeks;
 };
 
-// Функция для определения полного диапазона дат текущего месяца, который затем может быть использован для загрузки данных за этот период
-export const getCurrentMonthDateRange = (date: Date) => {
-    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-    const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-    
-    const format = (date: Date) => date.toISOString().split("T")[0];
+// Функция для определения полного диапазона дат месяца календаря, который затем может быть использован для загрузки данных за этот период
+export const getCalendarMonthDateRange = (date: Date): DateRange => {
+    const startOfMonth = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1, 0, 0, 0));
+    const endOfMonth = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59));
+
+    // Форматирование дат в ISO строку
+    const format = (date: Date) => date.toISOString();
+
+    return { startDate: format(startOfMonth), endDate: format(endOfMonth) };
+};
+
+// Функция для определения полного диапазона дат текущего месяца
+export const getCurrentMonthDateRange = (): DateRange => {
+    const now = new Date();
+    const startOfMonth = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1, 0, 0, 0));
+    const endOfMonth = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59));
+  
+    const format = (date: Date) => date.toISOString();
     
     return { startDate: format(startOfMonth), endDate: format(endOfMonth) };
 };

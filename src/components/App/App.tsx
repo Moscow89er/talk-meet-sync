@@ -9,12 +9,12 @@ import MeetingsPopup from "../MeetingsPopup/MeetingsPopup";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
 import Preloader from "../Preloader/Preloader";
-import { User, Meeting } from "../../utils/types/commonTypes";
+import { User, Meeting, DateRange } from "../../utils/types/commonTypes";
 import { handleSaveApiSettings, handleDeleteApiSettings } from "../../utils/api/apiSettingsHandlers";
 import { fetchUsers, fetchMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
 import { filterMeetingsForSelectedDate } from "../../utils/helpers/meetingHelpers";
-import { getCurrentMonthDateRange } from "../../utils/helpers/calendarHelpers";
+import { getCurrentMonthDateRange, getCalendarMonthDateRange } from "../../utils/helpers/calendarHelpers";
 import MainApi from "../../utils/api/MainApi";
 
 export default function App() {
@@ -22,9 +22,11 @@ export default function App() {
 
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
-    const [numsOfLicence, setNumsOfLicense] = useState<number>(1);
+    const [numsOfLicence, setNumsOfLicence] = useState<number>(1);
 
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+    const [displayDateRange, setDisplayDateRange] = useState<DateRange>(getCurrentMonthDateRange());
 
     const [activePopup, setActivePopup] = useState<string | null>(null);
     const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
@@ -33,15 +35,13 @@ export default function App() {
     const [isError, setIsError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const [title, setTitle] = useState("");
+    const [title, setTitle] = useState<string>("");
 
     const [talkUrl, setTalkUrl] = useState(localStorage.getItem("talkUrl") || "");
     const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
     const [mainApi, setMainApi] = useState(new MainApi({
         url: talkUrl
     }));
-
-    console.log(meetings, overlappingMeetings);
 
     const closePopups = useCallback(() => {
         setActivePopup(null);
@@ -66,32 +66,31 @@ export default function App() {
         openSettingsPopup();
     };
 
-    // Обработка изменение текущего отображаемого месяца в календаре
-    const handleMonthChange = (newDisplayDate: Date) => {
+    // Обработка изменение текущего отображаемого месяца в календаре  
+    const handleMonthChange = useCallback((newDisplayDate: Date) => {
         // Рассчитываем начальную и конечную даты для месяца
-        const { startDate, endDate } = getCurrentMonthDateRange(newDisplayDate);
-        // Загружаем встречи для текущего пользователя (пользователей) в новом диапазоне дат
-        fetchMeetingsForUsers(mainApi, numsOfLicence, startDate, endDate);
-    };
+        const { startDate, endDate } = getCalendarMonthDateRange(newDisplayDate);
+        setDisplayDateRange({ startDate, endDate });
+    }, []);
 
-    const onSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string, newNumsOfLicense: number) => {
+    const onSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string, newNumsOfLicence: number) => {
         handleSaveApiSettings({ 
             newTalkUrl,
             newApiKey,
-            newNumsOfLicense,
+            newNumsOfLicence,
             setTalkUrl,
             setApiKey,
-            setNumsOfLicense,
+            setNumsOfLicence,
             setMainApi,
             closePopups 
         });
-    }, [setTalkUrl, setApiKey, setNumsOfLicense, setMainApi, closePopups]);
+    }, [setTalkUrl, setApiKey, setNumsOfLicence, setMainApi, closePopups]);
 
     const onDeleteApiSettings = useCallback(() => {
         handleDeleteApiSettings({
             setTalkUrl,
             setApiKey,
-            setNumsOfLicense,
+            setNumsOfLicence,
             setMainApi,
             setMeetings,
             setOverlappingMeetings,
@@ -100,7 +99,7 @@ export default function App() {
             setIsInfoTooltipOpen,
         });
         
-    }, [setTalkUrl, setApiKey, setNumsOfLicense, setMainApi, setMeetings, setOverlappingMeetings, setActivePopup, setIsError, setIsInfoTooltipOpen]);
+    }, [setTalkUrl, setApiKey, setNumsOfLicence, setMainApi, setMeetings, setOverlappingMeetings, setActivePopup, setIsError, setIsInfoTooltipOpen]);
 
     const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
     const daysWithOverlappingMeetings = useMemo(() => new Set(overlappingMeetings.map(m => m.date)), [overlappingMeetings]);
@@ -128,7 +127,8 @@ export default function App() {
     };
 
     // Функция для извлечения всех встреч
-    const fetchAllMeetings = async (apiInstance: MainApi, users: User[], startDate: string, endDate: string) => {
+    const fetchAllMeetings = async (apiInstance: MainApi, users: User[], displayDateRange: DateRange) => {
+        const { startDate, endDate } = displayDateRange;
         // Параллельное извлечение данных о встречах
         const meetingsPromises = users.map(user => fetchMeetings(apiInstance, user.email, startDate, endDate));
         // Ожидаем завершения всех ассинхронных операций извлечения встреч
@@ -137,12 +137,15 @@ export default function App() {
         return meetingsResults.flat();
     };
       
-    const fetchMeetingsForUsers = async (apiInstance: MainApi, numsOfLicence: number, startDate: string, endDate: string) => {
+    const fetchMeetingsForUsers = async (apiInstance: MainApi, numsOfLicence: number, displayDateRange: DateRange) => {
         // Начало выполнения и установка состояния загрузки
         setIsLoading(true);
         try {
+            setMeetings([]);
+            setOverlappingMeetings([]);
+            
             const allUsers = await fetchAllUsers(apiInstance);
-            const allMeetings = await fetchAllMeetings(apiInstance, allUsers, startDate, endDate);
+            const allMeetings = await fetchAllMeetings(apiInstance, allUsers, displayDateRange);
             // Проверяем, инициализирован ли worker, и отправляем данные на обработку
             if (meetingWorkerRef.current) {
                 meetingWorkerRef.current.postMessage({
@@ -202,7 +205,11 @@ export default function App() {
         
         if (apiKey) localStorage.setItem("apiKey", apiKey);
         else localStorage.removeItem("apiKey");
-    }, [talkUrl, apiKey]);
+
+        if (talkUrl && apiKey) {
+            fetchMeetingsForUsers(mainApi, numsOfLicence, displayDateRange);
+        }
+    }, [talkUrl, apiKey, mainApi, numsOfLicence, displayDateRange]);
 
     
     return (

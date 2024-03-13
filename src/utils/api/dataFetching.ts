@@ -28,18 +28,22 @@ export const fetchUsers = async (
 export const fetchMeetings = async (
     mainApi: MainApi,
     email: string,
-    startDate: string,
-    endDate: string,
+    start: string,
+    to: string,
     take: number = 100 // Установим значение по умолчанию для параметра take, если оно не предоставлено
 ): Promise<Meeting[]> => {
     const params = {
         email: email,
-        start: startDate,
-        to: endDate,
+        start: start,
+        to: to,
         take: take
     };
 
     const response = await mainApi.getEmailCalendar(params);
+
+    console.log(params);
+
+    console.log(response);
 
     const meetingsData = response.items.map((item: ApiResponseMeetingItem) => ({
         id: item.id,
@@ -49,6 +53,8 @@ export const fetchMeetings = async (
         startTime: formatDate(item.start, { hour: "2-digit", minute: "2-digit" }),
         endTime: formatDate(item.end, { hour: "2-digit", minute: "2-digit" }),
     }));
+
+    console.log(meetingsData);
     
     return meetingsData;
 };

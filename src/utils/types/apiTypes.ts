@@ -8,10 +8,10 @@ export interface ApiOptions {
 export interface ApiSettingsArgs {
     newTalkUrl: string;
     newApiKey: string;
-    newNumsOfLicense: number;
+    newNumsOfLicence: number;
     setTalkUrl: (url: string) => void;
     setApiKey: (key: string) => void;
-    setNumsOfLicense: (num: number) => void;
+    setNumsOfLicence: (num: number) => void;
     setMainApi: (api: MainApi) => void;
     closePopups: () => void;
 }
@@ -19,7 +19,7 @@ export interface ApiSettingsArgs {
 export interface DeleteApiSettingsArgs {
     setTalkUrl: (url: string) => void;
     setApiKey: (key: string) => void;
-    setNumsOfLicense: (num: number) => void;
+    setNumsOfLicence: (num: number) => void;
     setMainApi: (api: MainApi) => void;
     setMeetings: (meetings: Meeting[]) => void;
     setOverlappingMeetings: (meetings: Meeting[]) => void;
