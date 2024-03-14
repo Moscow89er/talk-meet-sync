@@ -5,23 +5,25 @@ export const handleSaveApiSettings = async ({
     newTalkUrl,
     newApiKey,
     newNumsOfLicence,
-    setTalkUrl,
-    setApiKey,
+    setApiSettings,
     setNumsOfLicence,
-    setMainApi,
     closePopups,
 }: ApiSettingsArgs) => {
     try {
         localStorage.setItem("talkUrl", newTalkUrl);
         localStorage.setItem("apiKey", newApiKey);
 
-        setTalkUrl(newTalkUrl);
-        setApiKey(newApiKey);
-        setNumsOfLicence(newNumsOfLicence);
-
         const updatedApiInstance = new MainApi({ url: newTalkUrl });
         updatedApiInstance.updateConfig({ apiKey: newApiKey });
-        setMainApi(updatedApiInstance);
+
+        setApiSettings(prevSettings => ({
+          ...prevSettings,
+          talkUrl: newTalkUrl,
+          apiKey: newApiKey,
+          mainApi: updatedApiInstance,
+        }));
+
+        setNumsOfLicence(newNumsOfLicence);
         closePopups();
     } catch (error) {
         console.error("Ошибка при сохранении настроек:", error);
@@ -29,10 +31,8 @@ export const handleSaveApiSettings = async ({
 };
 
 export const handleDeleteApiSettings = ({
-    setTalkUrl,
-    setApiKey,
+    setApiSettings,
     setNumsOfLicence,
-    setMainApi,
     setMeetings,
     setOverlappingMeetings,
     setActivePopup,
@@ -46,13 +46,13 @@ export const handleDeleteApiSettings = ({
       localStorage.removeItem("talkUrl");
       localStorage.removeItem("apiKey");
       
-      setTalkUrl("");
-      setApiKey("");
+      setApiSettings({ // Сброс к начальным настройкам
+        talkUrl: "",
+        apiKey: "",
+        mainApi: new MainApi({ url: "" }),
+      });
+
       setNumsOfLicence(0);
-    
-      // Создание нового экземпляра MainApi с начальными настройками
-      const newApiInstance = new MainApi({ url: "" });
-      setMainApi(newApiInstance);
   
       setMeetings([]);
       setOverlappingMeetings([]);

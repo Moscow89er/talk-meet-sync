@@ -5,28 +5,30 @@ export interface ApiOptions {
     url?: string;
 }
 
+interface ApiSettings {
+    talkUrl: string;
+    apiKey: string;
+    mainApi: MainApi;
+}
+
 export interface ApiSettingsArgs {
     newTalkUrl: string;
     newApiKey: string;
     newNumsOfLicence: number;
-    setTalkUrl: (url: string) => void;
-    setApiKey: (key: string) => void;
+    setApiSettings: (updateFunction: (prevSettings: ApiSettings) => ApiSettings) => void;
     setNumsOfLicence: (num: number) => void;
-    setMainApi: (api: MainApi) => void;
     closePopups: () => void;
 }
 
 export interface DeleteApiSettingsArgs {
-    setTalkUrl: (url: string) => void;
-    setApiKey: (key: string) => void;
+    setApiSettings: (value: ApiSettings | ((prevSettings: ApiSettings) => ApiSettings)) => void;
     setNumsOfLicence: (num: number) => void;
-    setMainApi: (api: MainApi) => void;
     setMeetings: (meetings: Meeting[]) => void;
     setOverlappingMeetings: (meetings: Meeting[]) => void;
     setActivePopup: (popup: null) => void;
     setIsError: (isError: boolean) => void;
     setIsInfoTooltipOpen: (isOpen: boolean) => void;
-  }
+}
 
 export interface EmailCalendarParams {
     // Добавление индекскной подписи

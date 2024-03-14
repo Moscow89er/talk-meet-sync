@@ -35,10 +35,12 @@ export default function App() {
     const [isError, setIsError] = useState<boolean>(false);
     const [title, setTitle] = useState<string>("");
 
-    // Состояния связанные с API и хранением данных
-    const [talkUrl, setTalkUrl] = useState(localStorage.getItem("talkUrl") || "");
-    const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
-    const [mainApi, setMainApi] = useState(new MainApi({ url: talkUrl }));
+    // Состояние связанное с API и хранением данных
+    const [apiSettings, setApiSettings] = useState({
+        talkUrl: localStorage.getItem("talkUrl") || "",
+        apiKey: localStorage.getItem("apiKey") || "",
+        mainApi: new MainApi({ url: localStorage.getItem("talkUrl") || "" }),
+    });
 
     // Ссылки (Refs) для неуправляемых компонентов и оптимизации
     const meetingWorkerRef = useRef<Worker | null>(null);
@@ -77,26 +79,20 @@ export default function App() {
             newTalkUrl,
             newApiKey,
             newNumsOfLicence,
-            setTalkUrl,
-            setApiKey,
+            setApiSettings,
             setNumsOfLicence,
-            setMainApi,
             closePopups 
         });
     }, [
-        setTalkUrl,
-        setApiKey,
+        setApiSettings,
         setNumsOfLicence,
-        setMainApi,
         closePopups
     ]);
 
     const onDeleteApiSettings = useCallback(() => {
         handleDeleteApiSettings({
-            setTalkUrl,
-            setApiKey,
+            setApiSettings,
             setNumsOfLicence,
-            setMainApi,
             setMeetings,
             setOverlappingMeetings,
             setActivePopup,
@@ -105,10 +101,8 @@ export default function App() {
         });
         
     }, [
-        setTalkUrl,
-        setApiKey,
+        setApiSettings,
         setNumsOfLicence,
-        setMainApi,
         setMeetings,
         setOverlappingMeetings,
         setActivePopup,
@@ -158,6 +152,7 @@ export default function App() {
 
     // Cинхронизации состояния компонента с хранилищем данных браузера
     useEffect(() => {
+        const { talkUrl, apiKey } = apiSettings;
         // Записываем в localStorage только если значения не пустые
         if (talkUrl) localStorage.setItem("talkUrl", talkUrl);
         else localStorage.removeItem("talkUrl");
@@ -166,9 +161,9 @@ export default function App() {
         else localStorage.removeItem("apiKey");
 
         if (talkUrl && apiKey) {
-            fetchMeetingsForUsers(mainApi, numsOfLicence, displayDateRange);
+            fetchMeetingsForUsers(apiSettings.mainApi, numsOfLicence, displayDateRange);
         }
-    }, [talkUrl, apiKey, mainApi, numsOfLicence, displayDateRange]);
+    }, [apiSettings, numsOfLicence, displayDateRange]);
 
     const fetchMeetingsForUsers = async (apiInstance: MainApi, numsOfLicence: number, displayDateRange: DateRange) => {
         // Начало выполнения и установка состояния загрузки
@@ -211,7 +206,7 @@ export default function App() {
                 />
                 <Meetings
                     overlappingMeetings={overlappingMeetings}
-                    hasSettings={Boolean(talkUrl) && Boolean(apiKey)}
+                    hasSettings={Boolean(apiSettings.talkUrl) && Boolean(apiSettings.apiKey)}
                     isError={isError}
                     isLoading={isLoading}
                 />
@@ -231,8 +226,8 @@ export default function App() {
                 <ParentPopup isOpen={isPopupOpen} title={title} onClose={closePopups}>
                     <SettingsPopup
                         onSave={onSaveApiSettings}
-                        talkUrl={talkUrl}
-                        apiKey={apiKey}
+                        talkUrl={apiSettings.talkUrl}
+                        apiKey={apiSettings.apiKey}
                         numsOfLicense={numsOfLicence}
                         onDelete={onDeleteApiSettings}
                     />
