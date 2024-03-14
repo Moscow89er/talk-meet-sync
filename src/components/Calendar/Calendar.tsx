@@ -21,7 +21,7 @@ const Calendar: React.FC<CalendarProps> = ({
       onMonthChange(newDate);
       return newDate;
     });
-  }, []);
+  }, [onMonthChange]);
 
   const handleNextMonth = useCallback(() => {
     setDisplayDate(prevDate => {
@@ -30,7 +30,7 @@ const Calendar: React.FC<CalendarProps> = ({
       onMonthChange(newDate);
       return newDate;
     });
-  }, []);
+  }, [onMonthChange]);
 
   const handleDayClick = useCallback((day: number, isCurrentMonthDay: boolean) => {
     if (!isCurrentMonthDay) return; // Игнорируем клики по дням других месяцев

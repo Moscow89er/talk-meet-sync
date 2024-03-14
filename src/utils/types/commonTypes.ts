@@ -15,6 +15,7 @@ export interface MeetingsProps {
     overlappingMeetings: Meeting[];
     hasSettings: boolean;
     isError: boolean;
+    isLoading: boolean;
 }
 
 export interface User {

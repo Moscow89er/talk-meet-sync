@@ -1,9 +1,9 @@
-import { User, Meeting } from "../types/commonTypes";
+import { User, Meeting, DateRange } from "../types/commonTypes";
 import { formatDate } from "../formatters/formatDate";
 import MainApi from "./MainApi";
 import { ApiResponseUser, ApiResponseMeetingItem } from "../types/apiTypes";
 
-export const fetchUsers = async (
+const fetchUsers = async (
     mainApi: MainApi,
     top: number,
     offset?: string
@@ -25,25 +25,26 @@ export const fetchUsers = async (
     return { users: usersData, offset: response.offset };
 };
 
-export const fetchMeetings = async (
+const fetchMeetings = async (
     mainApi: MainApi,
     email: string,
     start: string,
     to: string,
     take: number = 100 // Установим значение по умолчанию для параметра take, если оно не предоставлено
 ): Promise<Meeting[]> => {
+    // Генерация уникального значения (текущее время в миллисекундах)
+    const cacheBuster = Date.now();
+
     const params = {
-        email: email,
-        start: start,
-        to: to,
-        take: take
+        email,
+        start,
+        to,
+        take,
+        // Добавляем уникальный параметр для предотвращения кеширования на стороне сервера
+        _: cacheBuster,
     };
 
     const response = await mainApi.getEmailCalendar(params);
-
-    console.log(params);
-
-    console.log(response);
 
     const meetingsData = response.items.map((item: ApiResponseMeetingItem) => ({
         id: item.id,
@@ -53,8 +54,38 @@ export const fetchMeetings = async (
         startTime: formatDate(item.start, { hour: "2-digit", minute: "2-digit" }),
         endTime: formatDate(item.end, { hour: "2-digit", minute: "2-digit" }),
     }));
-
-    console.log(meetingsData);
     
     return meetingsData;
+};
+
+// Функция для извлечения всех пользователей
+export const fetchAllUsers = async (apiInstance: MainApi) => {
+    // Инициализация переменных
+    let currentOffset: string | undefined = undefined;
+    let allUsers: User[] = [];
+    let hasMoreUsers = true;
+    
+    // Пагинационное извлечение данных о пользователях
+    while (hasMoreUsers) {
+        const response = await fetchUsers(apiInstance, 10, currentOffset);
+        if (response.users.length > 0) {
+            allUsers = [...allUsers, ...response.users];
+            currentOffset = response.offset;
+        } else {
+            hasMoreUsers = false;
+        }
+    }
+  
+    return allUsers;
+};
+
+// Функция для извлечения всех встреч
+export const fetchAllMeetings = async (apiInstance: MainApi, users: User[], displayDateRange: DateRange) => {
+    const { startDate, endDate } = displayDateRange;
+    // Параллельное извлечение данных о встречах
+    const meetingsPromises = users.map(user => fetchMeetings(apiInstance, user.email, startDate, endDate));
+    // Ожидаем завершения всех ассинхронных операций извлечения встреч
+    const meetingsResults = await Promise.all(meetingsPromises);
+    // Результат объединяем в один массив
+    return meetingsResults.flat();
 };

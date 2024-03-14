@@ -9,7 +9,7 @@ export const parseDate = (dateString: string, timeString: string): Date => {
 
 // Функция для создания временной шкалы всех событий начала и окончания встреч
 export const createTimeLine = (meetings: Meeting[]): { time: number; type: "start" | "end"; meeting: Meeting }[] => {
-    const now = new Date().getTime(); // Получаем текущее время в миллисекундах
+    const now = Date.now(); // Получаем текущее время в миллисекундах
 
     return meetings.flatMap(meeting => {
         const startTime = parseDate(meeting.date, meeting.startTime).getTime();

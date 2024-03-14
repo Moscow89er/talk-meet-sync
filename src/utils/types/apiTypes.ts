@@ -66,3 +66,9 @@ export interface ApiResponseMeetingItem {
     start: string;
     end: string;
 }
+
+export interface ApiError {
+    message: string;
+}
+
+export type ApiMethod<TParams, TResponse> = (params: TParams) => Promise<TResponse>;

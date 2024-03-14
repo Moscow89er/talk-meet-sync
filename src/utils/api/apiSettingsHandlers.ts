@@ -61,4 +61,4 @@ export const handleDeleteApiSettings = ({
       setIsError(false);
       setIsInfoTooltipOpen(true);
     }
-  };
+};
