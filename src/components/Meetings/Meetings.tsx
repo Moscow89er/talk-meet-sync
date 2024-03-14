@@ -9,13 +9,13 @@ const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings, hasSettings, i
     let headerText: string;
 
     if (isError && !isLoading) {
-        headerText = "В настройках указаны не верные данные, проверьте их и введите снова";
+        headerText = "В настройках указаны не верные данные, проверьте их и введите снова.";
     } else if (!hasSettings) {
-        headerText = "Введите ваши данные в настройки, чтобы настроить работу сервиса";
+        headerText = "Заполните настройки для активации сервиса.";
     } else if (isLoading) {
         headerText = "Идет загрузка...";
     } else {
-        headerText = overlappingMeetings.length !== 0 ? "Пересечение встреч" : "Пересечений между встречами нет";
+        headerText = overlappingMeetings.length !== 0 ? "Пересечение встреч:" : "Пересечений между встречами нет.";
     }
 
     return (
