@@ -25,6 +25,8 @@ export default function App() {
     const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [displayDateRange, setDisplayDateRange] = useState<DateRange>(getCurrentMonthDateRange());
+    // Локальное состояние для отслеживания запроса на изменение диапазона дат
+    const [requestedDateRange, setRequestedDateRange] = useState<Date | null>(null);
 
     // Состояния ошибок, информационных сообщений и загрузки
     const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState<boolean>(false);
@@ -102,12 +104,8 @@ export default function App() {
 
     // Обработка изменение текущего отображаемого месяца в календаре  
     const handleMonthChange = useCallback((newDisplayDate: Date) => {
-        // Рассчитываем начальную и конечную даты для месяца
-        const { startDate, endDate } = getCalendarMonthDateRange(newDisplayDate);
-
-        // Устанавливаем задержку, чтобы не было проблем при обновлении компонентов
-        queueMicrotask(() => setDisplayDateRange({ startDate, endDate }));
-    }, [setDisplayDateRange]);
+        setRequestedDateRange(newDisplayDate);
+    }, []);
 
     useEffect(() => {
         // Инициализация Web Worker при монтировании компонента
@@ -156,6 +154,14 @@ export default function App() {
             fetchMeetingsForUsers(mainApi, numsOfLicence, displayDateRange);
         }
     }, [apiSettings, displayDateRange]);
+
+    // Cинхронизация пользовательского выбора диапазона дат с состоянием приложения
+    useEffect(() => {
+        if (!requestedDateRange) return;
+    
+        const { startDate, endDate } = getCalendarMonthDateRange(requestedDateRange);
+        setDisplayDateRange({ startDate, endDate });
+    }, [requestedDateRange]);
 
     const fetchMeetingsForUsers = async (apiInstance: MainApi, numsOfLicence: number, displayDateRange: DateRange) => {
         // Начало выполнения и установка состояния загрузки

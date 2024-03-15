@@ -30,7 +30,7 @@ export interface CalendarProps {
     onOpenPopup: (isVisible: boolean) => void;
     overlappingMeetings: string[];
     meetings: string[];
-    onMonthChange: (newDisplayDate: Date) => void;
+    onMonthChange: (requestedDateRange: Date) => void;
 }
 
 export interface PopupProps {
