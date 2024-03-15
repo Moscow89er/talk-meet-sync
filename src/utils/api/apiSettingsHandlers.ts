@@ -6,7 +6,6 @@ export const handleSaveApiSettings = async ({
     newApiKey,
     newNumsOfLicence,
     setApiSettings,
-    setNumsOfLicence,
     closePopups,
 }: ApiSettingsArgs) => {
     try {
@@ -20,10 +19,10 @@ export const handleSaveApiSettings = async ({
           ...prevSettings,
           talkUrl: newTalkUrl,
           apiKey: newApiKey,
+          numsOfLicence: newNumsOfLicence,
           mainApi: updatedApiInstance,
         }));
 
-        setNumsOfLicence(newNumsOfLicence);
         closePopups();
     } catch (error) {
         console.error("Ошибка при сохранении настроек:", error);
@@ -32,10 +31,9 @@ export const handleSaveApiSettings = async ({
 
 export const handleDeleteApiSettings = ({
     setApiSettings,
-    setNumsOfLicence,
     setMeetings,
     setOverlappingMeetings,
-    setActivePopup,
+    setPopupState,
     setIsError,
     setIsInfoTooltipOpen,
   }: DeleteApiSettingsArgs) => {
@@ -49,15 +47,19 @@ export const handleDeleteApiSettings = ({
       setApiSettings({ // Сброс к начальным настройкам
         talkUrl: "",
         apiKey: "",
+        numsOfLicence: 1,
         mainApi: new MainApi({ url: "" }),
       });
-
-      setNumsOfLicence(0);
   
       setMeetings([]);
       setOverlappingMeetings([]);
     
-      setActivePopup(null);
+      setPopupState((prevState) => ({
+        ...prevState,
+        activePopup: null,
+        isPopupOpen: false,
+      }));
+
       setIsError(false);
       setIsInfoTooltipOpen(true);
     }

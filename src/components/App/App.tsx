@@ -9,6 +9,7 @@ import MeetingsPopup from "../MeetingsPopup/MeetingsPopup";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
 import Preloader from "../Preloader/Preloader";
+import { ApiSettings, PopupState } from "../../utils/types/apiTypes";
 import { Meeting, DateRange } from "../../utils/types/commonTypes";
 import { handleSaveApiSettings, handleDeleteApiSettings } from "../../utils/api/apiSettingsHandlers";
 import { fetchAllUsers, fetchAllMeetings } from "../../utils/api/dataFetching";
@@ -23,26 +24,28 @@ export default function App() {
     const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [displayDateRange, setDisplayDateRange] = useState<DateRange>(getCurrentMonthDateRange());
-    const [numsOfLicence, setNumsOfLicence] = useState<number>(1);
 
-    // Состояния UI: всплывающие окна и загрузка
-    const [activePopup, setActivePopup] = useState<string | null>(null);
-    const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
+    // Состояние всплывающего окна
+    const [popupState, setPopupState] = useState<PopupState>({
+        activePopup: null,
+        isPopupOpen: false,
+    });
+
+    // Состояния ошибок, информационных сообщений и загрузки
     const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-
-    // Состояния ошибок и информационных сообщений
     const [isError, setIsError] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [title, setTitle] = useState<string>("");
 
     // Состояние связанное с API и хранением данных
-    const [apiSettings, setApiSettings] = useState({
+    const [apiSettings, setApiSettings] = useState<ApiSettings>({
         talkUrl: localStorage.getItem("talkUrl") || "",
         apiKey: localStorage.getItem("apiKey") || "",
+        numsOfLicence: 1,
         mainApi: new MainApi({ url: localStorage.getItem("talkUrl") || "" }),
     });
 
-    // Ссылки (Refs) для неуправляемых компонентов и оптимизации
+    // Ссылка для web worker
     const meetingWorkerRef = useRef<Worker | null>(null);
 
     // useMemo для оптимизации вычислений
@@ -54,23 +57,30 @@ export default function App() {
     const openMeetingsPopup = useCallback(() => {
         const dateTitle = selectedDate ? `Встречи на ${formatDate(selectedDate)}` : "Выбранная встреча";
         setTitle(dateTitle);
-        setActivePopup("meetings");
-        setIsPopupOpen(true);
+
+        setPopupState((prevState) => ({
+            ...prevState,
+            activePopup: "meetings",
+            isPopupOpen: true,
+        }));
     }, [selectedDate]);
       
     const openSettingsPopup = useCallback(() => {
         setTitle("НАСТРОЙКИ");
-        setActivePopup("settings");
-        setIsPopupOpen(true);
+
+        setPopupState((prevState) => ({
+            ...prevState,
+            activePopup: "settings",
+            isPopupOpen: true,
+        }));
     }, []);
 
-    const handleSettingsClick = useCallback ((event: React.MouseEvent) => {
-        event.preventDefault();
-        openSettingsPopup();
-    }, [openSettingsPopup]);
-
     const closePopups = useCallback(() => {
-        setActivePopup(null);
+        setPopupState((prevState) => ({
+            ...prevState,
+            activePopup: null,
+            isPopupOpen: false,
+        }));
         setIsInfoTooltipOpen(false);
     }, []);
 
@@ -80,32 +90,28 @@ export default function App() {
             newApiKey,
             newNumsOfLicence,
             setApiSettings,
-            setNumsOfLicence,
-            closePopups 
+            closePopups,
         });
     }, [
         setApiSettings,
-        setNumsOfLicence,
         closePopups
     ]);
 
     const onDeleteApiSettings = useCallback(() => {
         handleDeleteApiSettings({
             setApiSettings,
-            setNumsOfLicence,
             setMeetings,
             setOverlappingMeetings,
-            setActivePopup,
+            setPopupState,
             setIsError,
             setIsInfoTooltipOpen,
         });
         
     }, [
         setApiSettings,
-        setNumsOfLicence,
         setMeetings,
         setOverlappingMeetings,
-        setActivePopup,
+        setPopupState,
         setIsError,
         setIsInfoTooltipOpen
     ]);
@@ -152,7 +158,7 @@ export default function App() {
 
     // Cинхронизации состояния компонента с хранилищем данных браузера
     useEffect(() => {
-        const { talkUrl, apiKey } = apiSettings;
+        const { talkUrl, apiKey, numsOfLicence, mainApi } = apiSettings;
         // Записываем в localStorage только если значения не пустые
         if (talkUrl) localStorage.setItem("talkUrl", talkUrl);
         else localStorage.removeItem("talkUrl");
@@ -161,9 +167,9 @@ export default function App() {
         else localStorage.removeItem("apiKey");
 
         if (talkUrl && apiKey) {
-            fetchMeetingsForUsers(apiSettings.mainApi, numsOfLicence, displayDateRange);
+            fetchMeetingsForUsers(mainApi, numsOfLicence, displayDateRange);
         }
-    }, [apiSettings, numsOfLicence, displayDateRange]);
+    }, [apiSettings, displayDateRange]);
 
     const fetchMeetingsForUsers = async (apiInstance: MainApi, numsOfLicence: number, displayDateRange: DateRange) => {
         // Начало выполнения и установка состояния загрузки
@@ -195,7 +201,7 @@ export default function App() {
     return (
         <div className="full-height">
             {isLoading && <Preloader />}
-            <Header onSettingsClick={handleSettingsClick}/>
+            <Header onSettingsClick={openSettingsPopup}/>
             <div className="content-expand bg-light p-4">
                 <Calendar
                     onDateSelect={setSelectedDate}
@@ -211,10 +217,11 @@ export default function App() {
                     isLoading={isLoading}
                 />
             </div>
-            {activePopup === "meetings" && (
+            {popupState.activePopup === "meetings" && (
                 <ParentPopup
-                    isOpen={isPopupOpen}
-                    title={title} onClose={closePopups}
+                    isOpen={popupState.isPopupOpen}
+                    title={title}
+                    onClose={closePopups}
                 >
                     <MeetingsPopup
                         date={selectedDate}
@@ -222,13 +229,16 @@ export default function App() {
                     />
                 </ParentPopup>
             )}
-            {activePopup === "settings" && (
-                <ParentPopup isOpen={isPopupOpen} title={title} onClose={closePopups}>
+            {popupState.activePopup === "settings" && (
+                <ParentPopup
+                    isOpen={popupState.isPopupOpen}
+                    title={title}
+                    onClose={closePopups}>
                     <SettingsPopup
                         onSave={onSaveApiSettings}
                         talkUrl={apiSettings.talkUrl}
                         apiKey={apiSettings.apiKey}
-                        numsOfLicense={numsOfLicence}
+                        numsOfLicense={apiSettings.numsOfLicence}
                         onDelete={onDeleteApiSettings}
                     />
                 </ParentPopup>

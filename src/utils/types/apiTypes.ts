@@ -5,10 +5,16 @@ export interface ApiOptions {
     url?: string;
 }
 
-interface ApiSettings {
+export interface ApiSettings {
     talkUrl: string;
     apiKey: string;
+    numsOfLicence: number;
     mainApi: MainApi;
+}
+
+export interface PopupState {
+    activePopup: string | null;
+    isPopupOpen: boolean;
 }
 
 export interface ApiSettingsArgs {
@@ -16,16 +22,14 @@ export interface ApiSettingsArgs {
     newApiKey: string;
     newNumsOfLicence: number;
     setApiSettings: (updateFunction: (prevSettings: ApiSettings) => ApiSettings) => void;
-    setNumsOfLicence: (num: number) => void;
     closePopups: () => void;
 }
 
 export interface DeleteApiSettingsArgs {
     setApiSettings: (value: ApiSettings | ((prevSettings: ApiSettings) => ApiSettings)) => void;
-    setNumsOfLicence: (num: number) => void;
     setMeetings: (meetings: Meeting[]) => void;
     setOverlappingMeetings: (meetings: Meeting[]) => void;
-    setActivePopup: (popup: null) => void;
+    setPopupState: (value: PopupState | ((prevState: PopupState) => PopupState)) => void;
     setIsError: (isError: boolean) => void;
     setIsInfoTooltipOpen: (isOpen: boolean) => void;
 }
