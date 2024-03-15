@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { PopupState } from '../types/apiTypes';
+import { useCallback, useState } from "react";
+import { PopupState } from "../types/apiTypes";
 
 const usePopup = () => {
     const [popupState, setPopupState] = useState<PopupState>({

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import useOutsideAlerter from "../../utils/hooks/useOutsideAlerter";
 import "./Header.css";
 import { Header } from "../../utils/types/commonTypes";
 import defaultImg from "../../images/default_img.jpg";
@@ -7,23 +8,17 @@ const Header: React.FC<Header> = ( { onSettingsClick } ) => {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
 
+    // Функция для закрытия попапа
+    const closePopup = () => setIsPopupOpen(false);
+
+    // Используем хук для закрытия попапа при клике вне его области и при нажатии на Escape
+    useOutsideAlerter(dropdownRef, isPopupOpen, closePopup);
+
     const handleToggleMenuOpen = (event: React.MouseEvent) => {
         event.preventDefault();
-        setIsPopupOpen(!isPopupOpen);
+        event.stopPropagation(); // Добавлено для предотвращения всплытия события
+        setIsPopupOpen(prevState => !prevState);
     };
-
-    const handleClickOutside = useCallback((event: MouseEvent) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-            setIsPopupOpen(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [handleClickOutside]);
 
     return (
         <header className="p-3 border-bottom">

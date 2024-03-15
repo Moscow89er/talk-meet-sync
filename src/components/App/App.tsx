@@ -9,7 +9,7 @@ import MeetingsPopup from "../MeetingsPopup/MeetingsPopup";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
 import Preloader from "../Preloader/Preloader";
-import { ApiSettings, PopupState } from "../../utils/types/apiTypes";
+import { ApiSettings } from "../../utils/types/apiTypes";
 import { Meeting, DateRange } from "../../utils/types/commonTypes";
 import { handleSaveApiSettings, handleDeleteApiSettings } from "../../utils/api/apiSettingsHandlers";
 import { fetchAllUsers, fetchAllMeetings } from "../../utils/api/dataFetching";
@@ -56,17 +56,17 @@ export default function App() {
         const dateTitle = selectedDate ? `Встречи на ${formatDate(selectedDate)}` : "Выбранная встреча";
         setTitle(dateTitle);
         openPopup("meetings");
-    }, [selectedDate]);
+    }, [openPopup, selectedDate]);
       
     const openSettingsPopup = useCallback(() => {
         setTitle("НАСТРОЙКИ");
         openPopup("settings");
-    }, []);
+    }, [openPopup]);
 
     const closePopups = useCallback(() => {
         closePopup();
         setIsInfoTooltipOpen(false);
-    }, []);
+    }, [closePopup]);
 
     const onSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string, newNumsOfLicence: number) => {
         handleSaveApiSettings({ 
@@ -104,8 +104,10 @@ export default function App() {
     const handleMonthChange = useCallback((newDisplayDate: Date) => {
         // Рассчитываем начальную и конечную даты для месяца
         const { startDate, endDate } = getCalendarMonthDateRange(newDisplayDate);
-        setDisplayDateRange({ startDate, endDate });
-    }, []);
+
+        // Устанавливаем задержку, чтобы не было проблем при обновлении компонентов
+        queueMicrotask(() => setDisplayDateRange({ startDate, endDate }));
+    }, [setDisplayDateRange]);
 
     useEffect(() => {
         // Инициализация Web Worker при монтировании компонента

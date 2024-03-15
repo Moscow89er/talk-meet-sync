@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
+import useOutsideAlerter from "../../utils/hooks/useOutsideAlerter";
 import { InfoTooltipProps } from "../../utils/types/commonTypes";
 import onSucces from "../../images/on_succes.png";
 import onError from "../../images/on_error.png";
@@ -7,30 +8,7 @@ import "./InfoTooltip.css";
 const InfoTooltip: React.FC<InfoTooltipProps> = ({ isOpen, onClose, isError, tooltipConfirm, tooltipError }) => {
     const popupRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (!isOpen) return;
-
-        function handleESC(event: KeyboardEvent) {
-            if (event.key === "Escape") {
-                onClose();
-            }
-        }
-
-        function handleClickOutside(event: MouseEvent) {
-            if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-                onClose();
-            }
-        }
-
-        document.addEventListener("keydown", handleESC);
-        document.addEventListener("mousedown", handleClickOutside);
-
-        return () => {
-            document.removeEventListener("keydown", handleESC);
-            document.removeEventListener("mousedown", handleClickOutside);  
-        }
-        
-    }, [isOpen, onClose]);
+    useOutsideAlerter(popupRef, isOpen, onClose);
 
     return (
         <section className={`popup-tooltip ${isOpen ? "popup-tooltip_opened" : ""}`}>
