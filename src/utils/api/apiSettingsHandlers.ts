@@ -33,7 +33,7 @@ export const handleDeleteApiSettings = ({
     setApiSettings,
     setMeetings,
     setOverlappingMeetings,
-    setPopupState,
+    closePopup,
     setIsError,
     setIsInfoTooltipOpen,
   }: DeleteApiSettingsArgs) => {
@@ -54,11 +54,7 @@ export const handleDeleteApiSettings = ({
       setMeetings([]);
       setOverlappingMeetings([]);
     
-      setPopupState((prevState) => ({
-        ...prevState,
-        activePopup: null,
-        isPopupOpen: false,
-      }));
+      closePopup();
 
       setIsError(false);
       setIsInfoTooltipOpen(true);

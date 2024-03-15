@@ -29,7 +29,7 @@ export interface DeleteApiSettingsArgs {
     setApiSettings: (value: ApiSettings | ((prevSettings: ApiSettings) => ApiSettings)) => void;
     setMeetings: (meetings: Meeting[]) => void;
     setOverlappingMeetings: (meetings: Meeting[]) => void;
-    setPopupState: (value: PopupState | ((prevState: PopupState) => PopupState)) => void;
+    closePopup: () => void;
     setIsError: (isError: boolean) => void;
     setIsInfoTooltipOpen: (isOpen: boolean) => void;
 }

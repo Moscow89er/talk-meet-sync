@@ -17,6 +17,7 @@ import { formatDate } from "../../utils/formatters/formatDate";
 import { filterMeetingsForSelectedDate } from "../../utils/helpers/meetingHelpers";
 import { getCurrentMonthDateRange, getCalendarMonthDateRange } from "../../utils/helpers/calendarHelpers";
 import MainApi from "../../utils/api/MainApi";
+import usePopup from "../../utils/hooks/usePopup";
 
 export default function App() {
     // Состояние данных и их фильтрация
@@ -24,12 +25,6 @@ export default function App() {
     const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [displayDateRange, setDisplayDateRange] = useState<DateRange>(getCurrentMonthDateRange());
-
-    // Состояние всплывающего окна
-    const [popupState, setPopupState] = useState<PopupState>({
-        activePopup: null,
-        isPopupOpen: false,
-    });
 
     // Состояния ошибок, информационных сообщений и загрузки
     const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState<boolean>(false);
@@ -53,34 +48,23 @@ export default function App() {
     const daysWithOverlappingMeetings = useMemo(() => new Set(overlappingMeetings.map(m => m.date)), [overlappingMeetings]);
     const filteredMeetingsForSelectedDate = useMemo(() => filterMeetingsForSelectedDate(meetings, selectedDate), [meetings, selectedDate]);
 
+    // Использование пользовательского хука для управлением попапами
+    const { popupState, openPopup, closePopup } = usePopup();
+
     // useCallback для предотвращения ненужных ререндеров
     const openMeetingsPopup = useCallback(() => {
         const dateTitle = selectedDate ? `Встречи на ${formatDate(selectedDate)}` : "Выбранная встреча";
         setTitle(dateTitle);
-
-        setPopupState((prevState) => ({
-            ...prevState,
-            activePopup: "meetings",
-            isPopupOpen: true,
-        }));
+        openPopup("meetings");
     }, [selectedDate]);
       
     const openSettingsPopup = useCallback(() => {
         setTitle("НАСТРОЙКИ");
-
-        setPopupState((prevState) => ({
-            ...prevState,
-            activePopup: "settings",
-            isPopupOpen: true,
-        }));
+        openPopup("settings");
     }, []);
 
     const closePopups = useCallback(() => {
-        setPopupState((prevState) => ({
-            ...prevState,
-            activePopup: null,
-            isPopupOpen: false,
-        }));
+        closePopup();
         setIsInfoTooltipOpen(false);
     }, []);
 
@@ -102,7 +86,7 @@ export default function App() {
             setApiSettings,
             setMeetings,
             setOverlappingMeetings,
-            setPopupState,
+            closePopup,
             setIsError,
             setIsInfoTooltipOpen,
         });
@@ -111,7 +95,7 @@ export default function App() {
         setApiSettings,
         setMeetings,
         setOverlappingMeetings,
-        setPopupState,
+        closePopup,
         setIsError,
         setIsInfoTooltipOpen
     ]);
@@ -205,7 +189,7 @@ export default function App() {
             <div className="content-expand bg-light p-4">
                 <Calendar
                     onDateSelect={setSelectedDate}
-                    onIsPopupVisible={openMeetingsPopup}
+                    onOpenPopup={openMeetingsPopup}
                     overlappingMeetings={Array.from(daysWithOverlappingMeetings)}
                     meetings={Array.from(daysWithMeetings)}
                     onMonthChange={handleMonthChange}

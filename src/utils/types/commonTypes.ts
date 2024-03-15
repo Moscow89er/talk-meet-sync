@@ -27,7 +27,7 @@ export interface User {
 
 export interface CalendarProps {
     onDateSelect: (date: string) => void;
-    onIsPopupVisible: (isVisible: boolean) => void;
+    onOpenPopup: (isVisible: boolean) => void;
     overlappingMeetings: string[];
     meetings: string[];
     onMonthChange: (newDisplayDate: Date) => void;

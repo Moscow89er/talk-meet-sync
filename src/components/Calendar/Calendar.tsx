@@ -6,7 +6,7 @@ import "./Calendar.css";
 
 const Calendar: React.FC<CalendarProps> = ({ 
   onDateSelect,
-  onIsPopupVisible,
+  onOpenPopup,
   overlappingMeetings,
   meetings,
   onMonthChange
@@ -41,8 +41,8 @@ const Calendar: React.FC<CalendarProps> = ({
     const formattedDate = `${displayDate.getFullYear()}-${month}-${formattedDay}`;
   
     onDateSelect(formattedDate);
-    onIsPopupVisible(true);
-  }, [onDateSelect, onIsPopupVisible, displayDate]);
+    onOpenPopup(true);
+  }, [onDateSelect, onOpenPopup, displayDate]);
 
   return (
     <section className="calendar__container">
