@@ -117,7 +117,7 @@ export type DateRangeAction =
     | { type: "SET_REQUEST_DATE_CHANGE"; newDate: Date }
     | { type: "SET_APPLY_DATE_CHANGE"; newDates: { startDate: string; endDate: string } };
 
-export type MeetingAction =
+export type MainAction =
     | { type: "SET_MEETINGS"; payload: Meeting[] }
     | { type: "SET_OVERLAPPING_MEETINGS"; payload: Meeting[] }
     | { type: "SET_SELECTED_DATE"; payload: string | null }
@@ -128,7 +128,7 @@ export type MeetingAction =
     | { type: "RESET_API_SETTINGS" }
     | { type: "SET_TITLE"; payload: string };
 
-export interface MeetingState {
+export interface MainState {
     meetings: Meeting[];
     overlappingMeetings: Meeting[];
     selectedDate: string | null;

@@ -1,7 +1,7 @@
-import { MeetingState, MeetingAction } from "../types/commonTypes";
+import { MainState, MainAction } from "../types/commonTypes";
 import MainApi from "../api/MainApi";
 
-export function mainReducer(state: MeetingState, action: MeetingAction): MeetingState {
+export function mainReducer(state: MainState, action: MainAction): MainState {
     switch (action.type) {
       case "SET_MEETINGS":
         return { ...state, meetings: action.payload };

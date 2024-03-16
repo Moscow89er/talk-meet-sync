@@ -1,8 +1,10 @@
 import webpack from 'webpack';
 import path from 'path';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { fileURLToPath } from 'url';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
+import { PurgeCSSPlugin } from 'purgecss-webpack-plugin';
+import { glob } from 'glob';
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -59,6 +61,10 @@ export default {
             'process.env.REACT_APP_API_KEY': JSON.stringify(process.env.REACT_APP_API_KEY),
         }),
         new BundleAnalyzerPlugin(),
+        new PurgeCSSPlugin({
+            paths: glob.sync(`${path.src}/**/*`, { nodir: true }),
+            only: ['bootstrap'],
+        }),
     ],
     devServer: {
         static: {
@@ -66,4 +72,8 @@ export default {
         },
         hot: true
     },
+    performance: {
+        maxEntrypointSize: 612000,
+        maxAssetSize: 612000
+    }
 };

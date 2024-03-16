@@ -1,5 +1,5 @@
 import { Dispatch } from "react";
-import { User, Meeting, DateRange, MeetingAction } from "../types/commonTypes";
+import { User, Meeting, DateRange, MainAction } from "../types/commonTypes";
 import { formatDate } from "../formatters/formatDate";
 import MainApi from "./MainApi";
 import { ApiResponseUser, ApiResponseMeetingItem } from "../types/apiTypes";
@@ -95,7 +95,7 @@ export const fetchMeetingsForUsers = async (
     apiInstance: MainApi,
     numsOfLicence: number,
     displayDateRange: DateRange,
-    meetingDispatch: Dispatch<MeetingAction>,
+    meetingDispatch: Dispatch<MainAction>,
     meetingWorkerRef: React.RefObject<Worker>
   ) => {
     meetingDispatch({ type: "SET_LOADING", payload: true });
