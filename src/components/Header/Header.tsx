@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import useOutsideAlerter from "../../utils/hooks/useOutsideAlerter";
 import "./Header.css";
 import { Header } from "../../utils/types/commonTypes";

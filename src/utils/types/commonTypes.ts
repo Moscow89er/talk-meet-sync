@@ -105,3 +105,11 @@ export interface DateRange {
     startDate: string;
     endDate: string;
 }
+
+export interface CalendarDateRangeState {
+    displayDateRange: DateRange;
+    requestedDateRange: Date | null;
+}
+
+export type DateRangeAction = { type: "requestDateChange"; newDate: Date }
+    | { type: "applyDateChange"; newDates: { startDate: string; endDate: string } };

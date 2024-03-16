@@ -51,8 +51,8 @@ export const getCalendarMonthDateRange = (date: Date): DateRange => {
 };
 
 // Функция для определения полного диапазона дат текущего месяца
-export const getCurrentMonthDateRange = (): DateRange => {
-    const now = new Date();
+export const getCurrentMonthDateRange = (date?: Date | null): DateRange => {
+    const now = date || new Date(); // Если дата не передана, используем текущую дату
     const startOfMonth = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1, 0, 0, 0));
     const endOfMonth = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59));
   

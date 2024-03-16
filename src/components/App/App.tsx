@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef, useReducer } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import Header from "../Header/Header";
@@ -9,6 +9,8 @@ import MeetingsPopup from "../MeetingsPopup/MeetingsPopup";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
 import Preloader from "../Preloader/Preloader";
+import MainApi from "../../utils/api/MainApi";
+import usePopup from "../../utils/hooks/usePopup";
 import { ApiSettings } from "../../utils/types/apiTypes";
 import { Meeting, DateRange } from "../../utils/types/commonTypes";
 import { handleSaveApiSettings, handleDeleteApiSettings } from "../../utils/api/apiSettingsHandlers";
@@ -16,17 +18,14 @@ import { fetchAllUsers, fetchAllMeetings } from "../../utils/api/dataFetching";
 import { formatDate } from "../../utils/formatters/formatDate";
 import { filterMeetingsForSelectedDate } from "../../utils/helpers/meetingHelpers";
 import { getCurrentMonthDateRange, getCalendarMonthDateRange } from "../../utils/helpers/calendarHelpers";
-import MainApi from "../../utils/api/MainApi";
-import usePopup from "../../utils/hooks/usePopup";
+import { dateRangeReducer } from "../../utils/reducers/dateRangeReducer";
+import { CalendarDateRangeState } from "../../utils/types/commonTypes";
 
 export default function App() {
     // Состояние данных и их фильтрация
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
-    const [displayDateRange, setDisplayDateRange] = useState<DateRange>(getCurrentMonthDateRange());
-    // Локальное состояние для отслеживания запроса на изменение диапазона дат
-    const [requestedDateRange, setRequestedDateRange] = useState<Date | null>(null);
 
     // Состояния ошибок, информационных сообщений и загрузки
     const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState<boolean>(false);
@@ -42,8 +41,17 @@ export default function App() {
         mainApi: new MainApi({ url: localStorage.getItem("talkUrl") || "" }),
     });
 
+    // Изначальное состояние диапазона дат календаря
+    const calendarRangeInitState: CalendarDateRangeState = {
+        displayDateRange: getCurrentMonthDateRange(),
+        requestedDateRange: null,
+    };
+
     // Ссылка для web worker
     const meetingWorkerRef = useRef<Worker | null>(null);
+
+    // Инициализация dateRangeReducer для корректного обновления состояния диапазона дат календаря 
+    const [calendarRangeState, dispatch] = useReducer(dateRangeReducer, calendarRangeInitState);
 
     // useMemo для оптимизации вычислений
     const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
@@ -102,9 +110,9 @@ export default function App() {
         setIsInfoTooltipOpen
     ]);
 
-    // Обработка изменение текущего отображаемого месяца в календаре  
+    // // Обработка изменение текущего отображаемого месяца в календаре  
     const handleMonthChange = useCallback((newDisplayDate: Date) => {
-        setRequestedDateRange(newDisplayDate);
+        dispatch({ type: "requestDateChange", newDate: newDisplayDate });
     }, []);
 
     useEffect(() => {
@@ -140,7 +148,7 @@ export default function App() {
         }
     }, [selectedDate, openMeetingsPopup]);
 
-    // Cинхронизации состояния компонента с хранилищем данных браузера
+    // Cинхронизации состояния приложения с хранилищем данных браузера
     useEffect(() => {
         const { talkUrl, apiKey, numsOfLicence, mainApi } = apiSettings;
         // Записываем в localStorage только если значения не пустые
@@ -151,18 +159,19 @@ export default function App() {
         else localStorage.removeItem("apiKey");
 
         if (talkUrl && apiKey) {
-            fetchMeetingsForUsers(mainApi, numsOfLicence, displayDateRange);
+            fetchMeetingsForUsers(mainApi, numsOfLicence, calendarRangeState.displayDateRange);
         }
-    }, [apiSettings, displayDateRange]);
+    }, [apiSettings, calendarRangeState.displayDateRange]);
 
     // Cинхронизация пользовательского выбора диапазона дат с состоянием приложения
     useEffect(() => {
-        if (!requestedDateRange) return;
-    
-        const { startDate, endDate } = getCalendarMonthDateRange(requestedDateRange);
-        setDisplayDateRange({ startDate, endDate });
-    }, [requestedDateRange]);
+        if (calendarRangeState.requestedDateRange) {
+            const { startDate, endDate } = getCalendarMonthDateRange(calendarRangeState.requestedDateRange);
+            dispatch({ type: "applyDateChange", newDates: { startDate, endDate }});
+        }
+    }, [calendarRangeState.requestedDateRange]);
 
+    // Функция определяющая запросы к серверу
     const fetchMeetingsForUsers = async (apiInstance: MainApi, numsOfLicence: number, displayDateRange: DateRange) => {
         // Начало выполнения и установка состояния загрузки
         setIsLoading(true);
