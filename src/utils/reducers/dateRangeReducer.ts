@@ -3,12 +3,12 @@ import { CalendarDateRangeState, DateRangeAction } from "../types/commonTypes";
 
 export function dateRangeReducer(state: CalendarDateRangeState, action: DateRangeAction) {
     switch (action.type) {
-        case "requestDateChange":
+        case "SET_REQUEST_DATE_CHANGE":
             return {
                 ...state,
                 requestedDateRange: action.newDate
             };
-        case "applyDateChange":
+        case "SET_APPLY_DATE_CHANGE":
             return {
                 ...state,
                 displayDateRange: getCurrentMonthDateRange(state.requestedDateRange),

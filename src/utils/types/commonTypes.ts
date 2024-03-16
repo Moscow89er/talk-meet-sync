@@ -1,3 +1,5 @@
+import { ApiSettings } from "./apiTypes";
+
 export interface Meeting {
     id: string;
     title: string;
@@ -111,5 +113,28 @@ export interface CalendarDateRangeState {
     requestedDateRange: Date | null;
 }
 
-export type DateRangeAction = { type: "requestDateChange"; newDate: Date }
-    | { type: "applyDateChange"; newDates: { startDate: string; endDate: string } };
+export type DateRangeAction = 
+    | { type: "SET_REQUEST_DATE_CHANGE"; newDate: Date }
+    | { type: "SET_APPLY_DATE_CHANGE"; newDates: { startDate: string; endDate: string } };
+
+export type MeetingAction =
+    | { type: "SET_MEETINGS"; payload: Meeting[] }
+    | { type: "SET_OVERLAPPING_MEETINGS"; payload: Meeting[] }
+    | { type: "SET_SELECTED_DATE"; payload: string | null }
+    | { type: "SET_LOADING"; payload: boolean }
+    | { type: "SET_ERROR"; payload: boolean }
+    | { type: "SET_INFO_TOOLTIP_OPEN"; payload: boolean }
+    | { type: "SET_API_SETTINGS"; payload: ApiSettings }
+    | { type: "RESET_API_SETTINGS" }
+    | { type: "SET_TITLE"; payload: string };
+
+export interface MeetingState {
+    meetings: Meeting[];
+    overlappingMeetings: Meeting[];
+    selectedDate: string | null;
+    isLoading: boolean;
+    isError: boolean;
+    isInfoTooltipOpen: boolean;
+    apiSettings: ApiSettings;
+    title: string;
+}

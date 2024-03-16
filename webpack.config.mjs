@@ -1,6 +1,7 @@
 import webpack from 'webpack';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 
 import dotenv from 'dotenv';
@@ -10,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default {
-    mode: 'development',
+    mode: 'production',
     entry: './src/index.js',
     output: {
         path: path.resolve(__dirname, 'build'),
@@ -57,6 +58,7 @@ export default {
         new webpack.DefinePlugin({
             'process.env.REACT_APP_API_KEY': JSON.stringify(process.env.REACT_APP_API_KEY),
         }),
+        new BundleAnalyzerPlugin(),
     ],
     devServer: {
         static: {

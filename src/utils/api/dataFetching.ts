@@ -1,4 +1,5 @@
-import { User, Meeting, DateRange } from "../types/commonTypes";
+import { Dispatch } from "react";
+import { User, Meeting, DateRange, MeetingAction } from "../types/commonTypes";
 import { formatDate } from "../formatters/formatDate";
 import MainApi from "./MainApi";
 import { ApiResponseUser, ApiResponseMeetingItem } from "../types/apiTypes";
@@ -88,4 +89,35 @@ export const fetchAllMeetings = async (apiInstance: MainApi, users: User[], disp
     const meetingsResults = await Promise.all(meetingsPromises);
     // Результат объединяем в один массив
     return meetingsResults.flat();
+};
+
+export const fetchMeetingsForUsers = async (
+    apiInstance: MainApi,
+    numsOfLicence: number,
+    displayDateRange: DateRange,
+    meetingDispatch: Dispatch<MeetingAction>,
+    meetingWorkerRef: React.RefObject<Worker>
+  ) => {
+    meetingDispatch({ type: "SET_LOADING", payload: true });
+    meetingDispatch({ type: "SET_MEETINGS", payload: [] });
+    meetingDispatch({ type: "SET_OVERLAPPING_MEETINGS", payload: [] });
+    
+    try {
+        const allUsers = await fetchAllUsers(apiInstance);
+        const allMeetings = await fetchAllMeetings(apiInstance, allUsers, displayDateRange);
+        
+        if (meetingWorkerRef.current) {
+            meetingWorkerRef.current.postMessage({
+                action: "sortAndIdentifyOverlaps",
+                data: { meetings: allMeetings, numsOfLicence }
+            });
+        }
+        meetingDispatch({ type: "SET_ERROR", payload: false });
+    } catch (error) {
+        console.error("Ошибка при получении данных о встречах:", error);
+        meetingDispatch({ type: "SET_ERROR", payload: true });
+        meetingDispatch({ type: "SET_INFO_TOOLTIP_OPEN", payload: true });
+    } finally {
+        meetingDispatch({ type: "SET_LOADING", payload: false });
+    }
 };

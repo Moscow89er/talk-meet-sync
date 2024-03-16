@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef, useReducer } from "react";
+import React, { useEffect, useMemo, useCallback, useRef, useReducer } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import Header from "../Header/Header";
@@ -11,108 +11,96 @@ import InfoTooltip from "../InfoTooltip/InfoTooltip";
 import Preloader from "../Preloader/Preloader";
 import MainApi from "../../utils/api/MainApi";
 import usePopup from "../../utils/hooks/usePopup";
-import { ApiSettings } from "../../utils/types/apiTypes";
-import { Meeting, DateRange } from "../../utils/types/commonTypes";
-import { handleSaveApiSettings, handleDeleteApiSettings } from "../../utils/api/apiSettingsHandlers";
-import { fetchAllUsers, fetchAllMeetings } from "../../utils/api/dataFetching";
+import { MeetingState } from "../../utils/types/commonTypes";
 import { formatDate } from "../../utils/formatters/formatDate";
 import { filterMeetingsForSelectedDate } from "../../utils/helpers/meetingHelpers";
+import { fetchMeetingsForUsers } from "../../utils/api/dataFetching";
 import { getCurrentMonthDateRange, getCalendarMonthDateRange } from "../../utils/helpers/calendarHelpers";
 import { dateRangeReducer } from "../../utils/reducers/dateRangeReducer";
 import { CalendarDateRangeState } from "../../utils/types/commonTypes";
+import { mainReducer } from "../../utils/reducers/mainReducer";
 
 export default function App() {
-    // Состояние данных и их фильтрация
-    const [meetings, setMeetings] = useState<Meeting[]>([]);
-    const [overlappingMeetings, setOverlappingMeetings] = useState<Meeting[]>([]);
-    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const meetingsInitState: MeetingState = {
+        meetings: [],
+        overlappingMeetings: [],
+        selectedDate: null,
+        isLoading: false,
+        isError: false,
+        isInfoTooltipOpen: false,
+        apiSettings: {
+          talkUrl: localStorage.getItem("talkUrl") || "",
+          apiKey: localStorage.getItem("apiKey") || "",
+          numsOfLicence: 1,
+          mainApi: new MainApi({ url: localStorage.getItem("talkUrl") || "" }),
+        },
+        title: "",
+    };
 
-    // Состояния ошибок, информационных сообщений и загрузки
-    const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState<boolean>(false);
-    const [isError, setIsError] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [title, setTitle] = useState<string>("");
-
-    // Состояние связанное с API и хранением данных
-    const [apiSettings, setApiSettings] = useState<ApiSettings>({
-        talkUrl: localStorage.getItem("talkUrl") || "",
-        apiKey: localStorage.getItem("apiKey") || "",
-        numsOfLicence: 1,
-        mainApi: new MainApi({ url: localStorage.getItem("talkUrl") || "" }),
-    });
-
-    // Изначальное состояние диапазона дат календаря
     const calendarRangeInitState: CalendarDateRangeState = {
         displayDateRange: getCurrentMonthDateRange(),
         requestedDateRange: null,
     };
 
-    // Ссылка для web worker
+    // Инициализация состояния приложения
+    const [calendarRangeState, calendarDispatch] = useReducer(dateRangeReducer, calendarRangeInitState);
+    const [meetingsState, meetingDispatch] = useReducer(mainReducer, meetingsInitState);
+
     const meetingWorkerRef = useRef<Worker | null>(null);
 
-    // Инициализация dateRangeReducer для корректного обновления состояния диапазона дат календаря 
-    const [calendarRangeState, dispatch] = useReducer(dateRangeReducer, calendarRangeInitState);
-
     // useMemo для оптимизации вычислений
-    const daysWithMeetings = useMemo(() => new Set(meetings.map(m => m.date)), [meetings]);
-    const daysWithOverlappingMeetings = useMemo(() => new Set(overlappingMeetings.map(m => m.date)), [overlappingMeetings]);
-    const filteredMeetingsForSelectedDate = useMemo(() => filterMeetingsForSelectedDate(meetings, selectedDate), [meetings, selectedDate]);
+    const daysWithMeetings = useMemo(() => new Set(meetingsState.meetings.map(m => m.date)), [meetingsState.meetings]);
+    const daysWithOverlappingMeetings = useMemo(() => new Set(meetingsState.overlappingMeetings.map(m => m.date)), [meetingsState.overlappingMeetings]);
+    const filteredMeetingsForSelectedDate = useMemo(() => filterMeetingsForSelectedDate(meetingsState.meetings, meetingsState.selectedDate), [meetingsState.meetings, meetingsState.selectedDate]);
 
     // Использование пользовательского хука для управлением попапами
     const { popupState, openPopup, closePopup } = usePopup();
 
     // useCallback для предотвращения ненужных ререндеров
     const openMeetingsPopup = useCallback(() => {
-        const dateTitle = selectedDate ? `Встречи на ${formatDate(selectedDate)}` : "Выбранная встреча";
-        setTitle(dateTitle);
+        const dateTitle = meetingsState.selectedDate ? `Встречи на ${formatDate(meetingsState.selectedDate)}` : "Выбранная встреча";
+        meetingDispatch({ type: "SET_TITLE", payload: dateTitle });
         openPopup("meetings");
-    }, [openPopup, selectedDate]);
+    }, [openPopup, meetingsState.selectedDate]);
       
     const openSettingsPopup = useCallback(() => {
-        setTitle("НАСТРОЙКИ");
+        meetingDispatch({ type: "SET_TITLE", payload: "НАСТРОЙКИ" });
         openPopup("settings");
     }, [openPopup]);
-
+    
     const closePopups = useCallback(() => {
         closePopup();
-        setIsInfoTooltipOpen(false);
+        meetingDispatch({ type: "SET_INFO_TOOLTIP_OPEN", payload: false });
     }, [closePopup]);
 
     const onSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string, newNumsOfLicence: number) => {
-        handleSaveApiSettings({ 
-            newTalkUrl,
-            newApiKey,
-            newNumsOfLicence,
-            setApiSettings,
-            closePopups,
+        const updatedApiInstance = new MainApi({ url: newTalkUrl });
+        updatedApiInstance.updateConfig({ apiKey: newApiKey });
+    
+        meetingDispatch({ 
+            type: "SET_API_SETTINGS", 
+            payload: { 
+                talkUrl: newTalkUrl, 
+                apiKey: newApiKey, 
+                numsOfLicence: newNumsOfLicence,
+                mainApi: updatedApiInstance
+            }
         });
-    }, [
-        setApiSettings,
-        closePopups
-    ]);
+        closePopups();
+    }, [closePopups]);
 
     const onDeleteApiSettings = useCallback(() => {
-        handleDeleteApiSettings({
-            setApiSettings,
-            setMeetings,
-            setOverlappingMeetings,
-            closePopup,
-            setIsError,
-            setIsInfoTooltipOpen,
-        });
-        
-    }, [
-        setApiSettings,
-        setMeetings,
-        setOverlappingMeetings,
-        closePopup,
-        setIsError,
-        setIsInfoTooltipOpen
-    ]);
+        meetingDispatch({ type: "RESET_API_SETTINGS" });
+        meetingDispatch({ type: "SET_MEETINGS", payload: [] });
+        meetingDispatch({ type: "SET_OVERLAPPING_MEETINGS", payload: [] });
+        closePopups();
+        meetingDispatch({ type: "SET_ERROR", payload: false });
+        meetingDispatch({ type: "SET_INFO_TOOLTIP_OPEN", payload: false });
+    }, [closePopups]);
 
-    // // Обработка изменение текущего отображаемого месяца в календаре  
+    // Обработка изменение текущего отображаемого месяца в календаре  
     const handleMonthChange = useCallback((newDisplayDate: Date) => {
-        dispatch({ type: "requestDateChange", newDate: newDisplayDate });
+        calendarDispatch({ type: "SET_REQUEST_DATE_CHANGE", newDate: newDisplayDate });
     }, []);
 
     useEffect(() => {
@@ -123,10 +111,9 @@ export default function App() {
             const { action, data } = event.data;
             switch (action) {
                 case "sortAndIdentifyOverlaps": {
-                    const { sortedMeetings, overlappingMeetings } = data;
-                    setMeetings(sortedMeetings);
-                    setOverlappingMeetings(overlappingMeetings);
-                    setIsLoading(false);
+                    meetingDispatch({ type: "SET_MEETINGS", payload: data.sortedMeetings });
+                    meetingDispatch({ type: "SET_OVERLAPPING_MEETINGS", payload: data.overlappingMeetings });
+                    meetingDispatch({ type: "SET_LOADING", payload: false });
                     break;
                 }
                 default:
@@ -143,14 +130,14 @@ export default function App() {
 
     // Автоматизируем открытие всплывающего окна в ответ на изменение выбранной даты
     useEffect(() => {
-        if (selectedDate != null) {
+        if (meetingsState.selectedDate != null) {
           openMeetingsPopup();
         }
-    }, [selectedDate, openMeetingsPopup]);
-
+    }, [meetingsState.selectedDate, openMeetingsPopup]);
+    
     // Cинхронизации состояния приложения с хранилищем данных браузера
     useEffect(() => {
-        const { talkUrl, apiKey, numsOfLicence, mainApi } = apiSettings;
+        const { talkUrl, apiKey, numsOfLicence, mainApi } = meetingsState.apiSettings;
         // Записываем в localStorage только если значения не пустые
         if (talkUrl) localStorage.setItem("talkUrl", talkUrl);
         else localStorage.removeItem("talkUrl");
@@ -159,73 +146,45 @@ export default function App() {
         else localStorage.removeItem("apiKey");
 
         if (talkUrl && apiKey) {
-            fetchMeetingsForUsers(mainApi, numsOfLicence, calendarRangeState.displayDateRange);
+            fetchMeetingsForUsers(mainApi, numsOfLicence, calendarRangeState.displayDateRange, meetingDispatch, meetingWorkerRef);
         }
-    }, [apiSettings, calendarRangeState.displayDateRange]);
+    }, [meetingsState.apiSettings, calendarRangeState.displayDateRange]);
 
     // Cинхронизация пользовательского выбора диапазона дат с состоянием приложения
     useEffect(() => {
         if (calendarRangeState.requestedDateRange) {
             const { startDate, endDate } = getCalendarMonthDateRange(calendarRangeState.requestedDateRange);
-            dispatch({ type: "applyDateChange", newDates: { startDate, endDate }});
+            calendarDispatch({ type: "SET_APPLY_DATE_CHANGE", newDates: { startDate, endDate }});
         }
     }, [calendarRangeState.requestedDateRange]);
-
-    // Функция определяющая запросы к серверу
-    const fetchMeetingsForUsers = async (apiInstance: MainApi, numsOfLicence: number, displayDateRange: DateRange) => {
-        // Начало выполнения и установка состояния загрузки
-        setIsLoading(true);
-        setMeetings([]);
-        setOverlappingMeetings([]);
-        
-        try {
-            const allUsers = await fetchAllUsers(apiInstance);
-            const allMeetings = await fetchAllMeetings(apiInstance, allUsers, displayDateRange);
-            
-            // Проверяем, инициализирован ли worker, и отправляем данные на обработку
-            if (meetingWorkerRef.current) {
-                meetingWorkerRef.current.postMessage({
-                    action: "sortAndIdentifyOverlaps",
-                    data: { meetings: allMeetings, numsOfLicence }
-                });
-            }
-            setIsError(false);
-        } catch (error) {
-            console.error("Ошибка при получении данных о встречах:", error);
-            setIsError(true);
-            setIsInfoTooltipOpen(true);
-        } finally {
-            setIsLoading(false);
-        }
-    };
     
     return (
         <div className="full-height">
-            {isLoading && <Preloader />}
+            {meetingsState.isLoading && <Preloader />}
             <Header onSettingsClick={openSettingsPopup}/>
             <div className="content-expand bg-light p-4">
                 <Calendar
-                    onDateSelect={setSelectedDate}
+                    onDateSelect={(date) => meetingDispatch({ type: "SET_SELECTED_DATE", payload: date })}
                     onOpenPopup={openMeetingsPopup}
                     overlappingMeetings={Array.from(daysWithOverlappingMeetings)}
                     meetings={Array.from(daysWithMeetings)}
                     onMonthChange={handleMonthChange}
                 />
                 <Meetings
-                    overlappingMeetings={overlappingMeetings}
-                    hasSettings={Boolean(apiSettings.talkUrl) && Boolean(apiSettings.apiKey)}
-                    isError={isError}
-                    isLoading={isLoading}
+                    overlappingMeetings={meetingsState.overlappingMeetings}
+                    hasSettings={Boolean(meetingsState.apiSettings.talkUrl) && Boolean(meetingsState.apiSettings.apiKey)}
+                    isError={meetingsState.isError}
+                    isLoading={meetingsState.isLoading}
                 />
             </div>
             {popupState.activePopup === "meetings" && (
                 <ParentPopup
                     isOpen={popupState.isPopupOpen}
-                    title={title}
+                    title={meetingsState.title}
                     onClose={closePopups}
                 >
                     <MeetingsPopup
-                        date={selectedDate}
+                        date={meetingsState.selectedDate}
                         meetings={filteredMeetingsForSelectedDate}
                     />
                 </ParentPopup>
@@ -233,24 +192,24 @@ export default function App() {
             {popupState.activePopup === "settings" && (
                 <ParentPopup
                     isOpen={popupState.isPopupOpen}
-                    title={title}
+                    title={meetingsState.title}
                     onClose={closePopups}>
                     <SettingsPopup
                         onSave={onSaveApiSettings}
-                        talkUrl={apiSettings.talkUrl}
-                        apiKey={apiSettings.apiKey}
-                        numsOfLicense={apiSettings.numsOfLicence}
+                        talkUrl={meetingsState.apiSettings.talkUrl}
+                        apiKey={meetingsState.apiSettings.apiKey}
+                        numsOfLicense={meetingsState.apiSettings.numsOfLicence}
                         onDelete={onDeleteApiSettings}
                     />
                 </ParentPopup>
             )}
             <InfoTooltip
-                isOpen={isInfoTooltipOpen}
-                isError={isError}
+                isOpen={meetingsState.isInfoTooltipOpen}
+                isError={meetingsState.isError}
                 onClose={closePopups}
                 tooltipConfirm="Данные удалены успешно!"
                 tooltipError="Введены некорректные данные. Проверьте адрес пространства Толк или ключ Api и попробуйте снова."
             />
         </div>
-    )
+    );
 }
