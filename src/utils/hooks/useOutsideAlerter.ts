@@ -16,12 +16,12 @@ function useOutsideAlerter(ref: React.RefObject<HTMLElement>, isOpen: boolean, o
             }
         }
 
-        document.addEventListener('mousedown', handleOutsideClick);
-        document.addEventListener('keydown', handleEscapeKey);
+        document.addEventListener("mousedown", handleOutsideClick);
+        document.addEventListener("keydown", handleEscapeKey);
 
         return () => {
-            document.removeEventListener('mousedown', handleOutsideClick);
-            document.removeEventListener('keydown', handleEscapeKey);
+            document.removeEventListener("mousedown", handleOutsideClick);
+            document.removeEventListener("keydown", handleEscapeKey);
         };
     }, [isOpen, onClose, ref]);
 }

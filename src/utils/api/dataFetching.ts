@@ -90,7 +90,7 @@ const fetchAllMeetings = async (apiInstance: MainApi, users: User[], displayDate
     const meetingsResults = await Promise.all(meetingsPromises);
     // Добавлена дополнительная фильтрация, так как сервер не корректно работает с параметром "to" и отдает все встречи
     const filteredMeetings = meetingsResults.flat().filter(meeting => {
-        const meetingDate = new Date(meeting.date.split('.').reverse().join('-'));
+        const meetingDate = new Date(meeting.date.split(".").reverse().join("-"));
         return meetingDate <= new Date(endDate);
     });
 
@@ -112,8 +112,6 @@ export const fetchMeetingsForUsers = async (
     try {
         const allUsers = await fetchAllUsers(apiInstance);
         const allMeetings = await fetchAllMeetings(apiInstance, allUsers, displayDateRange);
-
-        console.log(allMeetings);
         
         if (meetingWorkerRef.current) {
             meetingWorkerRef.current.postMessage({
