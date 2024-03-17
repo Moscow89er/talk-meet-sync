@@ -1,5 +1,3 @@
-import { ApiSettings } from "./apiTypes";
-
 export interface Meeting {
     id: string;
     title: string;
