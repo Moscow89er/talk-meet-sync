@@ -32,7 +32,7 @@ const fetchMeetings = async (
     email: string,
     start: string,
     to: string,
-    take: number = 100 // Установим значение по умолчанию для параметра take, если оно не предоставлено
+    take: number = 1000 // Установим значение по умолчанию для параметра take, если оно не предоставлено
 ): Promise<Meeting[]> => {
     // Генерация уникального значения (текущее время в миллисекундах)
     const cacheBuster = Date.now();
@@ -88,8 +88,13 @@ const fetchAllMeetings = async (apiInstance: MainApi, users: User[], displayDate
     const meetingsPromises = users.map(user => fetchMeetings(apiInstance, user.email, startDate, endDate));
     // Ожидаем завершения всех ассинхронных операций извлечения встреч
     const meetingsResults = await Promise.all(meetingsPromises);
-    // Результат объединяем в один массив
-    return meetingsResults.flat();
+    // Добавлена дополнительная фильтрация, так как сервер не корректно работает с параметром "to" и отдает все встречи
+    const filteredMeetings = meetingsResults.flat().filter(meeting => {
+        const meetingDate = new Date(meeting.date.split('.').reverse().join('-'));
+        return meetingDate <= new Date(endDate);
+    });
+
+    return filteredMeetings;
 };
 
 export const fetchMeetingsForUsers = async (
@@ -107,6 +112,8 @@ export const fetchMeetingsForUsers = async (
     try {
         const allUsers = await fetchAllUsers(apiInstance);
         const allMeetings = await fetchAllMeetings(apiInstance, allUsers, displayDateRange);
+
+        console.log(allMeetings);
         
         if (meetingWorkerRef.current) {
             meetingWorkerRef.current.postMessage({
