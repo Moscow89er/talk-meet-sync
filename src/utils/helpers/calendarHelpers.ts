@@ -1,4 +1,4 @@
-import { DateRange } from "../types/commonTypes";
+import { DateRange } from "../types/stateTypes";
 
 export const getPreviousDays = (firstDayOfMonth: number, lastDayOfLastMonth: number): number[] => {
     const previousDays = [];

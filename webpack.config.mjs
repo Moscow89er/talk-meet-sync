@@ -2,7 +2,6 @@ import webpack from 'webpack';
 import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { fileURLToPath } from 'url';
-import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import { PurgeCSSPlugin } from 'purgecss-webpack-plugin';
 import { glob } from 'glob';
 
@@ -60,7 +59,6 @@ export default {
         new webpack.DefinePlugin({
             'process.env.REACT_APP_API_KEY': JSON.stringify(process.env.REACT_APP_API_KEY),
         }),
-        new BundleAnalyzerPlugin(),
         new PurgeCSSPlugin({
             paths: glob.sync(`${path.src}/**/*`, { nodir: true }),
             only: ['bootstrap'],

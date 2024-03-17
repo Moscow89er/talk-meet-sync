@@ -1,5 +1,6 @@
 import { Dispatch } from "react";
-import { User, Meeting, DateRange, MainAction } from "../types/commonTypes";
+import { User, Meeting } from "../types/commonTypes";
+import { DateRange, MainAction, MeetingsAction } from "../types/stateTypes";
 import { formatDate } from "../formatters/formatDate";
 import MainApi from "./MainApi";
 import { ApiResponseUser, ApiResponseMeetingItem } from "../types/apiTypes";
@@ -60,7 +61,7 @@ const fetchMeetings = async (
 };
 
 // Функция для извлечения всех пользователей
-export const fetchAllUsers = async (apiInstance: MainApi) => {
+const fetchAllUsers = async (apiInstance: MainApi) => {
     // Инициализация переменных
     let currentOffset: string | undefined = undefined;
     let allUsers: User[] = [];
@@ -81,7 +82,7 @@ export const fetchAllUsers = async (apiInstance: MainApi) => {
 };
 
 // Функция для извлечения всех встреч
-export const fetchAllMeetings = async (apiInstance: MainApi, users: User[], displayDateRange: DateRange) => {
+const fetchAllMeetings = async (apiInstance: MainApi, users: User[], displayDateRange: DateRange) => {
     const { startDate, endDate } = displayDateRange;
     // Параллельное извлечение данных о встречах
     const meetingsPromises = users.map(user => fetchMeetings(apiInstance, user.email, startDate, endDate));
@@ -95,12 +96,13 @@ export const fetchMeetingsForUsers = async (
     apiInstance: MainApi,
     numsOfLicence: number,
     displayDateRange: DateRange,
-    meetingDispatch: Dispatch<MainAction>,
+    mainDispatch: Dispatch<MainAction>,
+    meetingsDispatch: Dispatch<MeetingsAction>,
     meetingWorkerRef: React.RefObject<Worker>
   ) => {
-    meetingDispatch({ type: "SET_LOADING", payload: true });
-    meetingDispatch({ type: "SET_MEETINGS", payload: [] });
-    meetingDispatch({ type: "SET_OVERLAPPING_MEETINGS", payload: [] });
+    mainDispatch({ type: "SET_LOADING", payload: true });
+    meetingsDispatch({ type: "SET_MEETINGS", payload: [] });
+    meetingsDispatch({ type: "SET_OVERLAPPING_MEETINGS", payload: [] });
     
     try {
         const allUsers = await fetchAllUsers(apiInstance);
@@ -108,16 +110,16 @@ export const fetchMeetingsForUsers = async (
         
         if (meetingWorkerRef.current) {
             meetingWorkerRef.current.postMessage({
-                action: "sortAndIdentifyOverlaps",
+                action: "SORT_AND_IDENTIFY_OVERLAPS",
                 data: { meetings: allMeetings, numsOfLicence }
             });
         }
-        meetingDispatch({ type: "SET_ERROR", payload: false });
+        mainDispatch({ type: "SET_ERROR", payload: false });
     } catch (error) {
         console.error("Ошибка при получении данных о встречах:", error);
-        meetingDispatch({ type: "SET_ERROR", payload: true });
-        meetingDispatch({ type: "SET_INFO_TOOLTIP_OPEN", payload: true });
+        mainDispatch({ type: "SET_ERROR", payload: true });
+        mainDispatch({ type: "SET_INFO_TOOLTIP_OPEN", payload: true });
     } finally {
-        meetingDispatch({ type: "SET_LOADING", payload: false });
+        mainDispatch({ type: "SET_LOADING", payload: false });
     }
 };

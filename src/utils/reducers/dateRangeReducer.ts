@@ -1,7 +1,7 @@
 import { getCurrentMonthDateRange } from "../helpers/calendarHelpers"
-import { CalendarDateRangeState, DateRangeAction } from "../types/commonTypes";
+import { CalendarDateRangeState, DateRangeAction } from "../types/stateTypes";
 
-export function dateRangeReducer(state: CalendarDateRangeState, action: DateRangeAction) {
+export default function dateRangeReducer(state: CalendarDateRangeState, action: DateRangeAction) {
     switch (action.type) {
         case "SET_REQUEST_DATE_CHANGE":
             return {

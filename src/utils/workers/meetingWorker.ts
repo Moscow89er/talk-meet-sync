@@ -1,4 +1,5 @@
-import { Meeting, sortAndIdentifyOverlaps } from "../types/commonTypes";
+import { Meeting } from "../types/commonTypes";
+import { sortAndIdentifyOverlaps } from "../types/stateTypes";
 
 // Функция преобразования даты и времени в объект Date требуемого нам формата
 export const parseDate = (dateString: string, timeString: string): Date => {
@@ -43,7 +44,7 @@ self.onmessage = (event: MessageEvent<sortAndIdentifyOverlaps>) => {
     // Обработка разных действий в зависимости от указанного типа действия
     switch (action) {
         // Сортировка встреч по времени начала, поиск перекрывающихся встреч
-        case "sortAndIdentifyOverlaps": {
+        case "SORT_AND_IDENTIFY_OVERLAPS": {
             // Приведение типа данных и извлечение необходимых значений
             const { meetings, numsOfLicence } = data as { meetings: Meeting[]; numsOfLicence: number };
 
