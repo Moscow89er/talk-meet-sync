@@ -12,21 +12,11 @@ const Calendar: React.FC<CalendarProps> = ({
   onMonthChange
  }) => {
   const [displayDate, setDisplayDate] = useState(new Date());
-  const currentDate = new Date();
 
-  const handlePrevMonth = useCallback(() => {
+  const handleChangeMonth = useCallback((direction: number) => {
     setDisplayDate(prevDate => {
-      // Создаем новую дату, относящуюся к первому дню предыдущего месяца
-      const newDate = new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1);
-      onMonthChange(newDate);
-      return newDate;
-    });
-  }, [onMonthChange]);
-
-  const handleNextMonth = useCallback(() => {
-    setDisplayDate(prevDate => {
-      // Создаем новую дату, относящуюся к первому дню следующего месяца
-      const newDate = new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1);
+      // Вычисляем новую дату, сдвигая текущий месяц на direction
+      const newDate = new Date(prevDate.getFullYear(), prevDate.getMonth() + direction, 1);
       onMonthChange(newDate);
       return newDate;
     });
@@ -49,9 +39,9 @@ const Calendar: React.FC<CalendarProps> = ({
         <div className="container">
             <div className="calendar__container">
                 <header className="calendar-header d-flex justify-content-between p-2">
-                    <button className="btn btn-primary" onClick={handlePrevMonth}>&lt;</button>
+                    <button className="btn btn-primary" onClick={() => handleChangeMonth(-1)}>&lt;</button>
                     <h4>{`${monthNames[displayDate.getMonth()]} ${displayDate.getFullYear()}`}</h4>
-                    <button className="btn btn-primary" onClick={handleNextMonth}>&gt;</button>
+                    <button className="btn btn-primary" onClick={() => handleChangeMonth(1)}>&gt;</button>
                 </header>
                 <table className="table table-bordered">
                     <thead>
@@ -67,7 +57,6 @@ const Calendar: React.FC<CalendarProps> = ({
                     </thead>
                     <CalendarGrid
                       displayDate={displayDate}
-                      currentDate={currentDate}
                       overlappingMeetings={overlappingMeetings}
                       meetings={meetings}
                       handleDayClick={handleDayClick}

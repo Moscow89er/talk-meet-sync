@@ -71,7 +71,7 @@ export default {
         hot: true
     },
     performance: {
-        maxEntrypointSize: 612000,
-        maxAssetSize: 612000
+        maxEntrypointSize: 540000,
+        maxAssetSize: 540000
     }
 };

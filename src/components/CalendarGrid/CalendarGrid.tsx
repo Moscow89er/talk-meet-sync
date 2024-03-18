@@ -1,17 +1,22 @@
-import React from "react";
+import React, { useMemo } from "react";
 import CalendarDay from "../CalendarDay/CalendarDay";
 import { getPreviousDays, getCurrentDays, getNextDays, getWeeks } from "../../utils/helpers/calendarHelpers";
 import { CalendarGridProps } from "../../utils/types/commonTypes";
 
 const CalendarGrid: React.FC<CalendarGridProps> = ({
   displayDate,
-  currentDate,
   overlappingMeetings,
   meetings,
   handleDayClick
 }) => {
   // Функция генерирующая календарь
-  const generateCalendar = () => {
+  const generateCalendar = useMemo(() => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const currentDay = currentDate.getDate();
+    // Определяем, является ли отображаемый месяц текущим месяцем
+    const isCurrentMonthAndYear = displayDate.getMonth() === currentMonth && displayDate.getFullYear() === currentYear;
     // Получаем год из текущего отображаемого месяца
     const year = displayDate.getFullYear();
     // Получаем месяц из текущего отображаемого месяца (отсчет начинается с 0)
@@ -22,10 +27,8 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
     const numberOfDaysInMonth = new Date(year, month + 1, 0).getDate();
     // Получаем количество дней в предыдущем месяце, что нужно для вычисления дней, которые отображаются в календаре из предыдущего месяца
     const lastDayOfLastMonth = new Date(year, month, 0).getDate();
-
     // Корректируем день недели для первого дня месяца, преобразуя воскресенье из 0 в 7 для удобства расчетов
     const dayOfWeek = firstDayOfMonth === 0 ? 7 : firstDayOfMonth;
-
     // Получаем массив предыдущих дней, которые должны быть показаны в календаре до первого числа текущего месяца
     const previousDays = getPreviousDays(dayOfWeek, lastDayOfLastMonth);
     // Получаем массив дней для текущего месяца
@@ -34,17 +37,10 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
     const calendarDays = [...previousDays, ...currentDays];
     // Вычисляем и получаем массив следующих дней, которые должны быть показаны после последнего числа текущего месяца
     const nextDays = getNextDays(calendarDays, dayOfWeek, numberOfDaysInMonth);
-
     // Объединяем все дни в один массив для отображения в календаре
     const allDays = [...calendarDays, ...nextDays];
     // Разбиваем все дни на недели для отображения в таблице календаря
     const weeks = getWeeks(allDays);
-
-    // Проверяем, соответствует ли месяц и год отображаемой даты текущему месяцу и году, чтобы выделить текущий день
-    const isCurrentMonth = currentDate.getMonth() === displayDate.getMonth() &&
-    currentDate.getFullYear() === displayDate.getFullYear();
-    // Получаем число текущего дня, чтобы выделить его в календаре, если отображаемый месяц является текущим месяцем
-    const currentDay = currentDate.getDate();
 
     return weeks.map((week, index) => (
       <tr key={index}>
@@ -52,7 +48,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
           const dayPosition = index * 7 + dayIndex;
           const isPrevMonth = dayPosition < dayOfWeek - 1;
           const isNextMonth = dayPosition >= (dayOfWeek - 1 + numberOfDaysInMonth);
-          const isCurrentDay = isCurrentMonth && day === currentDay && !isPrevMonth && !isNextMonth;
+          const isCurrentDay = isCurrentMonthAndYear && day === currentDay && !isPrevMonth && !isNextMonth;
           return (
             <CalendarDay
               key={dayIndex}
@@ -69,11 +65,11 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
         })}
       </tr>
     ));
-  };
+  }, [displayDate, overlappingMeetings, meetings, handleDayClick]);
 
   return (
-    <tbody>{generateCalendar()}</tbody>
+    <tbody>{generateCalendar}</tbody>
   );
 }
 
-export default CalendarGrid;
+export default React.memo(CalendarGrid);

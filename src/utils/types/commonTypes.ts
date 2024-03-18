@@ -83,7 +83,6 @@ export interface CalendarDayProps {
 
 export interface CalendarGridProps {
     displayDate: Date;
-    currentDate: Date;
     overlappingMeetings: string[];
     meetings: string[];
     handleDayClick: (day: number, isCurrentMonthDay: boolean) => void;
