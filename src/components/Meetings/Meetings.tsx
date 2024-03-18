@@ -11,7 +11,7 @@ const Meetings: React.FC<MeetingsProps> = ({ overlappingMeetings, hasSettings, i
     if (isError && !isLoading) {
         headerText = "В настройках указаны не верные данные, проверьте их и введите снова.";
     } else if (!hasSettings) {
-        headerText = "Заполните настройки для активации сервиса.";
+        headerText = "Внесите данные в настройки для активации сервиса.";
     } else if (isLoading) {
         headerText = "Идет загрузка...";
     } else {

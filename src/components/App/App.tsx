@@ -20,6 +20,20 @@ import { formatDate } from "../../utils/formatters/formatDate";
 import { filterMeetingsForSelectedDate } from "../../utils/helpers/meetingHelpers";
 import { fetchMeetingsForUsers } from "../../utils/api/dataFetching";
 import { getCurrentMonthDateRange, getCalendarMonthDateRange } from "../../utils/helpers/calendarHelpers";
+import {
+    SORT_AND_IDENTIFY_OVERLAPS,
+    SET_REQUEST_DATE_CHANGE,
+    SET_APPLY_DATE_CHANGE,
+    SET_SELECTED_DATE,
+    SET_LOADING,
+    SET_ERROR,
+    SET_INFO_TOOLTIP_OPEN,
+    SET_TITLE,
+    SET_MEETINGS,
+    SET_OVERLAPPING_MEETINGS,
+    SET_API_SETTINGS,
+    RESET_API_SETTINGS
+} from "../../utils/constants/constants";
 
 export default function App() {
     const mainInitState: MainState = {
@@ -68,18 +82,18 @@ export default function App() {
     // useCallback для предотвращения ненужных ререндеров
     const openMeetingsPopup = useCallback(() => {
         const dateTitle = main.selectedDate ? `Встречи на ${formatDate(main.selectedDate)}` : "Выбранная встреча";
-        mainDispatch({ type: "SET_TITLE", payload: dateTitle });
+        mainDispatch({ type: SET_TITLE, payload: dateTitle });
         openPopup("meetings");
     }, [openPopup, main.selectedDate]);
       
     const openSettingsPopup = useCallback(() => {
-        mainDispatch({ type: "SET_TITLE", payload: "НАСТРОЙКИ" });
+        mainDispatch({ type: SET_TITLE, payload: "НАСТРОЙКИ" });
         openPopup("settings");
     }, [openPopup]);
     
     const closePopups = useCallback(() => {
         closePopup();
-        mainDispatch({ type: "SET_INFO_TOOLTIP_OPEN", payload: false });
+        mainDispatch({ type: SET_INFO_TOOLTIP_OPEN, payload: false });
     }, [closePopup]);
 
     const onSaveApiSettings = useCallback((newTalkUrl: string, newApiKey: string, newNumsOfLicence: number) => {
@@ -87,7 +101,7 @@ export default function App() {
         updatedApiInstance.updateConfig({ apiKey: newApiKey });
     
         apiDispatch({ 
-            type: "SET_API_SETTINGS", 
+            type: SET_API_SETTINGS, 
             payload: { 
                 talkUrl: newTalkUrl, 
                 apiKey: newApiKey, 
@@ -99,17 +113,17 @@ export default function App() {
     }, [closePopups]);
 
     const onDeleteApiSettings = useCallback(() => {
-        apiDispatch({ type: "RESET_API_SETTINGS" });
-        meetingsDispatch({ type: "SET_MEETINGS", payload: [] });
-        meetingsDispatch({ type: "SET_OVERLAPPING_MEETINGS", payload: [] });
+        apiDispatch({ type: RESET_API_SETTINGS });
+        meetingsDispatch({ type: SET_MEETINGS, payload: [] });
+        meetingsDispatch({ type: SET_OVERLAPPING_MEETINGS, payload: [] });
         closePopups();
-        mainDispatch({ type: "SET_ERROR", payload: false });
-        mainDispatch({ type: "SET_INFO_TOOLTIP_OPEN", payload: true });
+        mainDispatch({ type: SET_ERROR, payload: false });
+        mainDispatch({ type: SET_INFO_TOOLTIP_OPEN, payload: true });
     }, [closePopups]);
 
     // Обработка изменение текущего отображаемого месяца в календаре  
     const handleMonthChange = useCallback((newDisplayDate: Date) => {
-        calendarDispatch({ type: "SET_REQUEST_DATE_CHANGE", newDate: newDisplayDate });
+        calendarDispatch({ type: SET_REQUEST_DATE_CHANGE, newDate: newDisplayDate });
     }, []);
 
     useEffect(() => {
@@ -119,10 +133,10 @@ export default function App() {
         worker.onmessage = (event) => {
             const { action, data } = event.data;
             switch (action) {
-                case "SORT_AND_IDENTIFY_OVERLAPS": {
-                    meetingsDispatch({ type: "SET_MEETINGS", payload: data.sortedMeetings });
-                    meetingsDispatch({ type: "SET_OVERLAPPING_MEETINGS", payload: data.overlappingMeetings });
-                    mainDispatch({ type: "SET_LOADING", payload: false });
+                case SORT_AND_IDENTIFY_OVERLAPS: {
+                    meetingsDispatch({ type: SET_MEETINGS, payload: data.sortedMeetings });
+                    meetingsDispatch({ type: SET_OVERLAPPING_MEETINGS, payload: data.overlappingMeetings });
+                    mainDispatch({ type: SET_LOADING, payload: false });
                     break;
                 }
                 default:
@@ -163,7 +177,7 @@ export default function App() {
     useEffect(() => {
         if (calendarRange.requestedDateRange) {
             const { startDate, endDate } = getCalendarMonthDateRange(calendarRange.requestedDateRange);
-            calendarDispatch({ type: "SET_APPLY_DATE_CHANGE", newDates: { startDate, endDate }});
+            calendarDispatch({ type: SET_APPLY_DATE_CHANGE, newDates: { startDate, endDate }});
         }
     }, [calendarRange.requestedDateRange]);
     
@@ -173,7 +187,7 @@ export default function App() {
             <Header onSettingsClick={openSettingsPopup}/>
             <div className="content-expand bg-light p-4">
                 <Calendar
-                    onDateSelect={(date) => mainDispatch({ type: "SET_SELECTED_DATE", payload: date })}
+                    onDateSelect={(date) => mainDispatch({ type: SET_SELECTED_DATE, payload: date })}
                     onOpenPopup={openMeetingsPopup}
                     overlappingMeetings={Array.from(daysWithOverlappingMeetings)}
                     meetings={Array.from(daysWithMeetings)}

@@ -1,5 +1,19 @@
 import { Meeting } from "./commonTypes";
 import { ApiSettings } from "./apiTypes";
+import {
+    SORT_AND_IDENTIFY_OVERLAPS,
+    SET_REQUEST_DATE_CHANGE,
+    SET_APPLY_DATE_CHANGE,
+    SET_SELECTED_DATE,
+    SET_LOADING,
+    SET_ERROR,
+    SET_INFO_TOOLTIP_OPEN,
+    SET_TITLE,
+    SET_MEETINGS,
+    SET_OVERLAPPING_MEETINGS,
+    SET_API_SETTINGS,
+    RESET_API_SETTINGS
+} from "../constants/constants";
 
 export interface DateRange {
     startDate: string;
@@ -12,7 +26,7 @@ export interface CalendarDateRangeState {
 }
 
 export interface sortAndIdentifyOverlaps {
-    action: "SORT_AND_IDENTIFY_OVERLAPS";
+    action: typeof SORT_AND_IDENTIFY_OVERLAPS;
     data: {
       meetings: Meeting[];
       numsOfLicence: number;
@@ -20,15 +34,15 @@ export interface sortAndIdentifyOverlaps {
 }
 
 export type DateRangeAction = 
-    | { type: "SET_REQUEST_DATE_CHANGE"; newDate: Date }
-    | { type: "SET_APPLY_DATE_CHANGE"; newDates: { startDate: string; endDate: string } };
+    | { type: typeof SET_REQUEST_DATE_CHANGE; newDate: Date }
+    | { type: typeof SET_APPLY_DATE_CHANGE; newDates: { startDate: string; endDate: string } };
 
 export type MainAction =
-    | { type: "SET_SELECTED_DATE"; payload: string | null }
-    | { type: "SET_LOADING"; payload: boolean }
-    | { type: "SET_ERROR"; payload: boolean }
-    | { type: "SET_INFO_TOOLTIP_OPEN"; payload: boolean }
-    | { type: "SET_TITLE"; payload: string };
+    | { type: typeof SET_SELECTED_DATE; payload: string | null }
+    | { type: typeof SET_LOADING; payload: boolean }
+    | { type: typeof SET_ERROR; payload: boolean }
+    | { type: typeof SET_INFO_TOOLTIP_OPEN; payload: boolean }
+    | { type: typeof SET_TITLE; payload: string };
 
 export interface MainState {
     selectedDate: string | null;
@@ -39,8 +53,8 @@ export interface MainState {
 }
 
 export type MeetingsAction = 
-    | { type: "SET_MEETINGS"; payload: Meeting[] }
-    | { type: "SET_OVERLAPPING_MEETINGS"; payload: Meeting[] };
+    | { type: typeof SET_MEETINGS; payload: Meeting[] }
+    | { type: typeof SET_OVERLAPPING_MEETINGS; payload: Meeting[] };
 
 export interface MeetingsState {
     meetings: Meeting[];
@@ -48,8 +62,8 @@ export interface MeetingsState {
 }
 
 export type ApiAction =
-    | { type: "SET_API_SETTINGS"; payload: ApiSettings }
-    | { type: "RESET_API_SETTINGS" };
+    | { type: typeof SET_API_SETTINGS; payload: ApiSettings }
+    | { type: typeof RESET_API_SETTINGS };
 
 export interface ApiState {
     apiSettings: ApiSettings;

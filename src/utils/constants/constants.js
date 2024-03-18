@@ -1,1 +1,13 @@
 export const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+export const SORT_AND_IDENTIFY_OVERLAPS = "SORT_AND_IDENTIFY_OVERLAPS";
+export const SET_REQUEST_DATE_CHANGE = "SET_REQUEST_DATE_CHANGE";
+export const SET_APPLY_DATE_CHANGE = "SET_APPLY_DATE_CHANGE";
+export const SET_SELECTED_DATE = "SET_SELECTED_DATE";
+export const SET_LOADING = "SET_LOADING";
+export const SET_ERROR = "SET_ERROR";
+export const SET_INFO_TOOLTIP_OPEN = "SET_INFO_TOOLTIP_OPEN";
+export const SET_TITLE = "SET_TITLE";
+export const SET_MEETINGS = "SET_MEETINGS";
+export const SET_OVERLAPPING_MEETINGS = "SET_OVERLAPPING_MEETINGS";
+export const SET_API_SETTINGS = "SET_API_SETTINGS";
+export const RESET_API_SETTINGS = "RESET_API_SETTINGS";
