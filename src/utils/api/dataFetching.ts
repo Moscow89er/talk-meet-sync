@@ -4,6 +4,14 @@ import { DateRange, MainAction, MeetingsAction } from "../types/stateTypes";
 import { formatDate } from "../formatters/formatDate";
 import MainApi from "./MainApi";
 import { ApiResponseUser, ApiResponseMeetingItem } from "../types/apiTypes";
+import {
+    SET_LOADING,
+    SET_MEETINGS,
+    SET_OVERLAPPING_MEETINGS,
+    SET_ERROR,
+    SET_INFO_TOOLTIP_OPEN,
+    SORT_AND_IDENTIFY_OVERLAPS
+} from "../constants/constants";
 
 const fetchUsers = async (
     mainApi: MainApi,
@@ -105,9 +113,9 @@ export const fetchMeetingsForUsers = async (
     meetingsDispatch: Dispatch<MeetingsAction>,
     meetingWorkerRef: React.RefObject<Worker>
   ) => {
-    mainDispatch({ type: "SET_LOADING", payload: true });
-    meetingsDispatch({ type: "SET_MEETINGS", payload: [] });
-    meetingsDispatch({ type: "SET_OVERLAPPING_MEETINGS", payload: [] });
+    mainDispatch({ type: SET_LOADING, payload: true });
+    meetingsDispatch({ type: SET_MEETINGS, payload: [] });
+    meetingsDispatch({ type: SET_OVERLAPPING_MEETINGS, payload: [] });
     
     try {
         const allUsers = await fetchAllUsers(apiInstance);
@@ -115,16 +123,16 @@ export const fetchMeetingsForUsers = async (
         
         if (meetingWorkerRef.current) {
             meetingWorkerRef.current.postMessage({
-                action: "SORT_AND_IDENTIFY_OVERLAPS",
+                action: SORT_AND_IDENTIFY_OVERLAPS,
                 data: { meetings: allMeetings, numsOfLicence }
             });
         }
-        mainDispatch({ type: "SET_ERROR", payload: false });
+        mainDispatch({ type: SET_ERROR, payload: false });
     } catch (error) {
         console.error("Ошибка при получении данных о встречах:", error);
-        mainDispatch({ type: "SET_ERROR", payload: true });
-        mainDispatch({ type: "SET_INFO_TOOLTIP_OPEN", payload: true });
+        mainDispatch({ type: SET_ERROR, payload: true });
+        mainDispatch({ type: SET_INFO_TOOLTIP_OPEN, payload: true });
     } finally {
-        mainDispatch({ type: "SET_LOADING", payload: false });
+        mainDispatch({ type: SET_LOADING, payload: false });
     }
 };

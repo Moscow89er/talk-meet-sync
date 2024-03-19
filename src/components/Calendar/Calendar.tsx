@@ -9,7 +9,8 @@ const Calendar: React.FC<CalendarProps> = ({
   onOpenPopup,
   overlappingMeetings,
   meetings,
-  onMonthChange
+  onMonthChange,
+  isLoading
  }) => {
   const [displayDate, setDisplayDate] = useState(new Date());
 
@@ -39,9 +40,9 @@ const Calendar: React.FC<CalendarProps> = ({
         <div className="container">
             <div className="calendar__container">
                 <header className="calendar-header d-flex justify-content-between p-2">
-                    <button className="btn btn-primary" onClick={() => handleChangeMonth(-1)}>&lt;</button>
+                    <button className="btn btn-primary" onClick={() => handleChangeMonth(-1)} disabled={isLoading}>&lt;</button>
                     <h4>{`${monthNames[displayDate.getMonth()]} ${displayDate.getFullYear()}`}</h4>
-                    <button className="btn btn-primary" onClick={() => handleChangeMonth(1)}>&gt;</button>
+                    <button className="btn btn-primary" onClick={() => handleChangeMonth(1)} disabled={isLoading}>&gt;</button>
                 </header>
                 <table className="table table-bordered">
                     <thead>

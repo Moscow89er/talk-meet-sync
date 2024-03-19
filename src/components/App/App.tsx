@@ -192,6 +192,7 @@ export default function App() {
                     overlappingMeetings={Array.from(daysWithOverlappingMeetings)}
                     meetings={Array.from(daysWithMeetings)}
                     onMonthChange={handleMonthChange}
+                    isLoading={main.isLoading}
                 />
                 <Meetings
                     overlappingMeetings={meetings.overlappingMeetings}

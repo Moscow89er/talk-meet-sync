@@ -31,6 +31,7 @@ export interface CalendarProps {
     overlappingMeetings: string[];
     meetings: string[];
     onMonthChange: (requestedDateRange: Date) => void;
+    isLoading: boolean;
 }
 
 export interface PopupProps {
