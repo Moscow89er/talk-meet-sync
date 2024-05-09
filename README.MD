@@ -138,4 +138,4 @@ Information on recommended deployment methods will be useful for publishing the 
 - Testing on Apple devices: Conduct comprehensive testing of the service's functionality and display on various Apple devices, including iPhone and iPad, to ensure its correct operation in the iOS ecosystem.
 
 ## Author
-Nikita Khuvaev - [GitHub](https://github.com/Moscow89er/)
+Nikita Khubaev - [GitHub](https://github.com/Moscow89er/)
